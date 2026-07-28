@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-x#v(5547-earnnfvcm4#^uj86j%+o_^^7g9axsd9m*roi200ee
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["hackathonhub.pythonanywhere.com",]
 
 
 # Application definition
@@ -173,7 +173,7 @@ SIMPLE_JWT = {
 }
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = ["https://hackathonhubb.vercel.app",]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -188,3 +188,4 @@ CORS_ALLOW_HEADERS = [
     "x-hackathon-id", # Custom header for Hackathon ID
 ]
 
+CSRF_TRUSTED_ORIGINS = ["https://hackathonhubb.vercel.app",]
