@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
-
+const API_BASE_URL = "https://hackathonhub.pythonanywhere.com";
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   headers: {
@@ -33,7 +32,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     // Check if unauthorized and not already retrying
     if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/login/')) {
       originalRequest._retry = true;
