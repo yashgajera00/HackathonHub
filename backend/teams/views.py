@@ -1,0 +1,302 @@
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.db.models import Count
+from hackathons.models import Hackathon
+from teams.models import Team, TeamMember, TeamInvitation
+from teams.serializers import TeamSerializer, TeamInvitationSerializer
+from memberships.models import HackathonMember
+from notifications.models import Notification
+from common.permissions import IsHackathonOrganizer, IsHackathonParticipant
+from dashboard.models import log_activity
+
+class TeamViewSet(viewsets.ModelViewSet):
+    queryset = Team.objects.all().order_by('-created_at')
+    serializer_class = TeamSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'leave', 'submit_project']:
+            # Must be a participant or organizer
+            return [permissions.IsAuthenticated()]
+        elif self.action in ['update', 'partial_update', 'destroy', 'kick_member']:
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Team.objects.none()
+
+        hackathon_id = self.request.query_params.get('hackathon_id') or self.request.headers.get('X-Hackathon-Id')
+        if hackathon_id:
+            return Team.objects.filter(hackathon_id=hackathon_id)
+
+        # By default, list teams user is a member of
+        return Team.objects.filter(members__user=user)
+
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        
+        # Verify role in hackathon if hackathon_id is present
+        hackathon_id = request.query_params.get('hackathon_id') or request.headers.get('X-Hackathon-Id')
+        if hackathon_id and self.action == 'create':
+            # Check if user is registered/accepted participant
+            is_participant = HackathonMember.objects.filter(
+                hackathon_id=hackathon_id,
+                user=request.user,
+                role='Participant',
+                invitation_status='Accepted'
+            ).exists()
+            # Organizer and platform owners can bypass
+            if not is_participant and not request.user.is_superuser:
+                self.permission_denied(
+                    request,
+                    message="Only registered Participants can create a team in this hackathon."
+                )
+
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            team = serializer.save(created_by=self.request.user)
+            # Create a leader TeamMember record
+            TeamMember.objects.create(
+                team=team,
+                user=self.request.user,
+                role='Leader',
+                hackathon=team.hackathon
+            )
+            log_activity(
+                self.request.user,
+                "Created team",
+                hackathon=team.hackathon,
+                details=f"Created team: {team.name} in {team.hackathon.title}"
+            )
+
+    @action(detail=True, methods=['post'])
+    def leave(self, request, pk=None):
+        """
+        Leave a team. If the leader leaves:
+        - Transfer leadership to another member if possible
+        - Otherwise delete the team
+        """
+        team = self.get_object()
+        member_record = get_object_or_404(TeamMember, team=team, user=request.user)
+
+        with transaction.atomic():
+            member_record.delete()
+            log_activity(
+                request.user,
+                "Left team",
+                hackathon=team.hackathon,
+                details=f"Left team: {team.name}"
+            )
+
+            other_members = team.members.all().order_by('joined_at')
+            if not other_members.exists():
+                # Delete team if empty
+                team.delete()
+                return Response({"detail": "You left the team. The team was empty and has been deleted."}, status=status.HTTP_200_OK)
+            
+            if member_record.role == 'Leader':
+                # Promote the next member to Leader
+                next_leader = other_members.first()
+                next_leader.role = 'Leader'
+                next_leader.save()
+                
+                team.created_by = next_leader.user
+                team.save()
+
+                Notification.objects.create(
+                    user=next_leader.user,
+                    title="Promoted to Team Leader",
+                    message=f"The previous leader left. You are now the leader of team {team.name}."
+                )
+
+        return Response({"detail": "Successfully left the team."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def kick_member(self, request, pk=None):
+        """
+        Leader kicks a member from the team
+        """
+        team = self.get_object()
+        if team.created_by != request.user and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can kick members."}, status=status.HTTP_403_FORBIDDEN)
+
+        kick_user_id = request.data.get('user_id')
+        if not kick_user_id:
+            return Response({"detail": "user_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if kick_user_id == team.created_by.id:
+            return Response({"detail": "Cannot kick yourself. Use the leave endpoint instead."}, status=status.HTTP_400_BAD_REQUEST)
+
+        member_record = get_object_or_404(TeamMember, team=team, user_id=kick_user_id)
+        member_record.delete()
+
+        log_activity(
+            request.user,
+            f"Kicked member {member_record.user.username}",
+            hackathon=team.hackathon,
+            details=f"Kicked user {member_record.user.username} from team {team.name}"
+        )
+
+        Notification.objects.create(
+            user=member_record.user,
+            title="Kicked from Team",
+            message=f"You have been removed from team {team.name} by the leader."
+        )
+
+        return Response(self.get_serializer(team).data)
+
+    @action(detail=True, methods=['post', 'put', 'patch'])
+    def submit_project(self, request, pk=None):
+        """
+        Leader submits project details/submission links
+        """
+        team = self.get_object()
+        if team.created_by != request.user and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can submit projects."}, status=status.HTTP_403_FORBIDDEN)
+
+        team.project_title = request.data.get('project_title', team.project_title)
+        team.project_description = request.data.get('project_description', team.project_description)
+        team.project_submission_link = request.data.get('project_submission_link', team.project_submission_link)
+        team.save()
+
+        log_activity(
+            request.user,
+            "Submitted project details",
+            hackathon=team.hackathon,
+            details=f"Submitted project for team {team.name}: {team.project_title}"
+        )
+
+        # Notify other team members
+        for member in team.members.all():
+            if member.user != request.user:
+                Notification.objects.create(
+                    user=member.user,
+                    title="Project Updated",
+                    message=f"Leader updated team project details for {team.name}."
+                )
+
+        return Response(self.get_serializer(team).data)
+
+class TeamInvitationViewSet(viewsets.ModelViewSet):
+    queryset = TeamInvitation.objects.all().order_by('-invited_at')
+    serializer_class = TeamInvitationSerializer
+
+    def get_permissions(self):
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return TeamInvitation.objects.none()
+            
+        # User sees invites sent to them or invites sent from teams they lead
+        return TeamInvitation.objects.filter(
+            Q(invitee=user) | Q(team__created_by=user)
+        ).distinct()
+
+    def perform_create(self, serializer):
+        team = serializer.validated_data['team']
+        invitee = serializer.validated_data['invitee']
+        
+        # Check if current user is the leader of the team
+        if team.created_by != self.request.user and not self.request.user.is_superuser:
+            self.permission_denied(self.request, message="Only the Team Leader can invite members.")
+
+        # Check if team size limit exceeded
+        max_size = team.hackathon.max_team_size
+        current_members = team.members.count()
+        if current_members >= max_size:
+            self.permission_denied(self.request, message="Team has reached its maximum size limit.")
+
+        invitation = serializer.save()
+        
+        # Send user notification
+        Notification.objects.create(
+            user=invitee,
+            title="Team Invitation",
+            message=f"You have been invited to join team '{team.name}' in {team.hackathon.title}."
+        )
+
+    @action(detail=False, methods=['get'])
+    def my_invitations(self, request):
+        invitations = TeamInvitation.objects.filter(invitee=request.user, status='Pending')
+        serializer = self.get_serializer(invitations, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        invitation = get_object_or_404(TeamInvitation, pk=pk, invitee=request.user)
+        if invitation.status != 'Pending':
+            return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+
+        team = invitation.team
+        
+        # Verify user is not already in a team
+        if TeamMember.objects.filter(hackathon=team.hackathon, user=request.user).exists():
+            invitation.status = 'Rejected'
+            invitation.save()
+            return Response({"detail": "You are already a member of a team in this hackathon."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check capacity
+        max_size = team.hackathon.max_team_size
+        if team.members.count() >= max_size:
+            return Response({"detail": "This team is already full."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            invitation.status = 'Accepted'
+            invitation.save()
+
+            # Create team member
+            TeamMember.objects.create(
+                team=team,
+                user=request.user,
+                role='Member',
+                hackathon=team.hackathon
+            )
+
+            # Reject/Cancel all other pending invitations for this user in this hackathon
+            TeamInvitation.objects.filter(
+                invitee=request.user,
+                team__hackathon=team.hackathon,
+                status='Pending'
+            ).update(status='Rejected')
+
+            log_activity(
+                request.user,
+                "Joined team",
+                hackathon=team.hackathon,
+                details=f"Joined team: {team.name} via invitation"
+            )
+
+            # Notify team leader
+            Notification.objects.create(
+                user=team.created_by,
+                title="Invitation Accepted",
+                message=f"{request.user.username} accepted the invitation to join team {team.name}."
+            )
+
+        return Response(TeamInvitationSerializer(invitation).data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        invitation = get_object_or_404(TeamInvitation, pk=pk, invitee=request.user)
+        if invitation.status != 'Pending':
+            return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+
+        invitation.status = 'Rejected'
+        invitation.save()
+
+        # Notify team leader
+        Notification.objects.create(
+            user=invitation.team.created_by,
+            title="Invitation Rejected",
+            message=f"{request.user.username} rejected the invitation to join team {invitation.team.name}."
+        )
+
+        return Response(TeamInvitationSerializer(invitation).data)
+from django.db.models import Q
+
