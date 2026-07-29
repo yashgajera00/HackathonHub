@@ -6,6 +6,7 @@ import {
   Calendar, MapPin, Users, Award, BookOpen, Clock, Plus, Trash2, 
   Sparkles, CheckCircle, Download, ShieldCheck, Trophy, RefreshCw, AlertTriangle
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function HackathonDetails() {
   const { activeHackathon, activeHackathonRole } = useHackathon();
@@ -596,11 +597,14 @@ export default function HackathonDetails() {
                 <div className="p-6 md:p-8 md:w-1/3 flex flex-col items-center justify-center space-y-4 bg-slate-950/40 relative">
                   {userRegistration.status === 'Approved' ? (
                     <>
-                      <div className="bg-white p-2 rounded-2xl shadow-md border border-slate-800">
-                        <img 
-                          src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${userRegistration.qr_code_uuid}`}
-                          alt="Verification QR"
-                          className="h-32 w-32 object-contain"
+                      <div className="bg-white p-2 rounded-2xl shadow-md border border-slate-800 flex items-center justify-center">
+                        <QRCodeSVG 
+                          value={userRegistration.qr_code_uuid} 
+                          size={128}
+                          bgColor={"#ffffff"}
+                          fgColor={"#000000"}
+                          level={"L"}
+                          includeMargin={false}
                         />
                       </div>
                       <span className="text-[9px] font-mono text-slate-500 tracking-wider text-center break-all select-all">
