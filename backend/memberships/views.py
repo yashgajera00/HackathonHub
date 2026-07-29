@@ -65,6 +65,15 @@ class HackathonMemberViewSet(viewsets.ModelViewSet):
             message=f"You have been invited to join {member.hackathon.title} as a {member.role}."
         )
 
+    def perform_destroy(self, instance):
+        if instance.role == 'Participant':
+            from registrations.models import Registration
+            Registration.objects.filter(
+                hackathon=instance.hackathon,
+                user=instance.user
+            ).update(status='Rejected')
+        instance.delete()
+
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my_memberships(self, request):
         """
@@ -163,6 +172,14 @@ class HackathonMemberViewSet(viewsets.ModelViewSet):
 
         membership.invitation_status = 'Removed'
         membership.save()
+
+        # If the member is a Participant, reject their registration as well
+        if membership.role == 'Participant':
+            from registrations.models import Registration
+            Registration.objects.filter(
+                hackathon=membership.hackathon,
+                user=membership.user
+            ).update(status='Rejected')
         
         log_activity(
             request.user,
