@@ -96,14 +96,14 @@ export default function HackathonsList() {
   return (
     <div className="space-y-8 py-4">
       {/* Hero Banner Banner */}
-      <div className="bg-radial from-blue-600 to-blue-800 rounded-3xl p-8 md:p-12 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+      <div className="bg-linear-to-br from-blue-600 via-indigo-600 to-violet-700 text-white rounded-3xl p-6 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0c_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0c_1px,transparent_1px)] bg-[size:24px_24px]"></div>
         <div className="space-y-4 max-w-xl relative z-10">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-semibold backdrop-blur-md">
             <Sparkles size={12} />
             <span>Discover & Create Hackathons</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold font-display leading-tight tracking-tight m-0">
+          <h1 className="text-2xl md:text-5xl font-extrabold font-display leading-tight tracking-tight m-0">
             Build the Future at HackathonHub.
           </h1>
           <p className="text-sm md:text-base text-blue-100 font-medium">

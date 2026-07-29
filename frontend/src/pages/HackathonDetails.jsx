@@ -200,7 +200,7 @@ export default function HackathonDetails() {
               <Trophy size={48} className="text-white/20" />
             </div>
           )}
-          <div className="absolute bottom-4 left-6 flex items-center space-x-4 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-gray-200/50 shadow-lg max-w-lg">
+          <div className="absolute bottom-4 left-4 right-4 md:left-6 md:right-auto flex items-center space-x-3 md:space-x-4 bg-white/95 backdrop-blur-md px-3 md:px-4 py-2.5 rounded-2xl border border-gray-200/50 shadow-lg md:max-w-lg">
             {activeHackathon.logo ? (
               <img src={activeHackathon.logo} alt="Logo" className="h-10 w-10 rounded-lg object-cover" />
             ) : (
@@ -208,15 +208,15 @@ export default function HackathonDetails() {
                 {activeHackathon.title.slice(0, 2)}
               </div>
             )}
-            <div>
-              <h2 className="text-base font-bold font-display text-gray-900 leading-tight">{activeHackathon.title}</h2>
+            <div className="min-w-0">
+              <h2 className="text-sm md:text-base font-bold font-display text-gray-900 leading-tight truncate">{activeHackathon.title}</h2>
               <span className="text-[10px] font-bold text-blue-600 uppercase mt-0.5 inline-block">Active Role: {activeHackathonRole}</span>
             </div>
           </div>
         </div>
 
         {/* Briefing */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-600">
+        <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 text-sm text-gray-600">
           <div className="md:col-span-2 space-y-2">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">About the Hackathon</h3>
             <p className="leading-relaxed">{activeHackathon.description || 'No description provided.'}</p>
@@ -246,17 +246,17 @@ export default function HackathonDetails() {
       </div>
 
       {/* Tabs Menu */}
-      <div className="border-b border-gray-200 flex space-x-6 text-sm font-semibold">
+      <div className="border-b border-gray-200 flex space-x-4 md:space-x-6 text-sm font-semibold overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         <button
           onClick={() => setActiveTab('schedule')}
-          className={`pb-3 relative transition ${activeTab === 'schedule' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+          className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'schedule' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
         >
           <span>Schedule</span>
           {activeTab === 'schedule' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
         </button>
         <button
           onClick={() => setActiveTab('rules')}
-          className={`pb-3 relative transition ${activeTab === 'rules' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+          className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'rules' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
         >
           <span>Rules</span>
           {activeTab === 'rules' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
@@ -264,7 +264,7 @@ export default function HackathonDetails() {
         {userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
           <button
             onClick={() => setActiveTab('ticket')}
-            className={`pb-3 relative transition ${activeTab === 'ticket' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'ticket' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
           >
             <span>Check-in QR Ticket</span>
             {activeTab === 'ticket' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
@@ -273,7 +273,7 @@ export default function HackathonDetails() {
         {activeHackathonRole === 'Participant' && (
           <button
             onClick={() => setActiveTab('certificate')}
-            className={`pb-3 relative transition ${activeTab === 'certificate' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'certificate' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
           >
             <span>Participation Certificate</span>
             {activeTab === 'certificate' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
@@ -282,7 +282,7 @@ export default function HackathonDetails() {
       </div>
 
       {/* Tab Panels */}
-      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-xs min-h-[300px]">
+      <div className="bg-white border border-gray-100 rounded-3xl p-4 md:p-6 shadow-xs min-h-[300px]">
         {/* Schedule Tab */}
         {activeTab === 'schedule' && (
           <div className="space-y-6">

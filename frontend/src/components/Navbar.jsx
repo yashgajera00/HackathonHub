@@ -74,7 +74,7 @@ export default function Navbar({ onToggleSidebar }) {
         )}
         <Link to="/" className="flex items-center space-x-2">
           <span className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold font-display">H</span>
-          <span className="text-xl font-bold font-display tracking-tight text-gray-900">Hackathon<span className="text-blue-600">Hub</span></span>
+          <span className="hidden sm:inline text-xl font-bold font-display tracking-tight text-gray-900">Hackathon<span className="text-blue-600">Hub</span></span>
         </Link>
 
         {/* Hackathon Selector (Role Switching) */}
@@ -82,18 +82,18 @@ export default function Navbar({ onToggleSidebar }) {
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200/60 rounded-lg text-sm text-gray-700 transition"
+              className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200/60 rounded-lg text-sm text-gray-700 transition max-w-[140px] sm:max-w-[220px]"
             >
-              <LayoutGrid size={15} className="text-gray-500" />
-              <span className="font-medium max-w-[150px] truncate">
+              <LayoutGrid size={15} className="text-gray-500 flex-shrink-0" />
+              <span className="font-medium truncate">
                 {activeHackathon ? activeHackathon.title : 'My Hackathons'}
               </span>
               {activeHackathonRole && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 font-semibold rounded-md border border-blue-100">
+                <span className="hidden sm:inline ml-1.5 px-1.5 py-0.5 text-xs bg-blue-50 text-blue-600 font-semibold rounded-md border border-blue-100 flex-shrink-0">
                   {activeHackathonRole}
                 </span>
               )}
-              <ChevronDown size={14} className="text-gray-400" />
+              <ChevronDown size={14} className="text-gray-400 flex-shrink-0" />
             </button>
 
             {showDropdown && (

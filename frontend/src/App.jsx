@@ -55,7 +55,7 @@ const ProtectedLayout = () => {
       <Navbar onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
       <div className="flex flex-1 relative">
         <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto h-[calc(100vh-61px)]">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto h-[calc(100vh-61px)]">
           <Outlet />
         </main>
       </div>
