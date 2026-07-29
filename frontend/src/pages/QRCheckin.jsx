@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
@@ -12,6 +12,7 @@ export default function QRCheckin() {
   const [uuidInput, setUuidInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [outcome, setOutcome] = useState(null);
+  const isScanningRef = useRef(false);
 
   // Simulated scan database helpers
   const [pendingParticipants, setPendingParticipants] = useState([]);
@@ -41,7 +42,8 @@ export default function QRCheckin() {
     );
 
     const onScanSuccess = (decodedText) => {
-      if (decodedText) {
+      if (decodedText && !isScanningRef.current) {
+        isScanningRef.current = true;
         handleCheckInSubmit(null, decodedText);
       }
     };
@@ -114,6 +116,9 @@ export default function QRCheckin() {
       });
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        isScanningRef.current = false;
+      }, 3500);
     }
   };
 

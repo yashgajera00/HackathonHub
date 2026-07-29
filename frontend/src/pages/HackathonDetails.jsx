@@ -261,7 +261,7 @@ export default function HackathonDetails() {
           <span>Rules</span>
           {activeTab === 'rules' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
         </button>
-        {userRegistration && (
+        {userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
           <button
             onClick={() => setActiveTab('ticket')}
             className={`pb-3 relative transition ${activeTab === 'ticket' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
@@ -512,7 +512,7 @@ export default function HackathonDetails() {
         )}
 
         {/* Ticket Tab */}
-        {activeTab === 'ticket' && userRegistration && (
+        {activeTab === 'ticket' && userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
           <div className="space-y-6 max-w-2xl mx-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold font-display text-gray-900 font-sans">Check-in QR Ticket</h3>
@@ -596,21 +596,31 @@ export default function HackathonDetails() {
                 {/* Right Section (QR Code) */}
                 <div className="p-6 md:p-8 md:w-1/3 flex flex-col items-center justify-center space-y-4 bg-slate-950/40 relative">
                   {userRegistration.status === 'Approved' ? (
-                    <>
-                      <div className="bg-white p-2 rounded-2xl shadow-md border border-slate-800 flex items-center justify-center">
-                        <QRCodeSVG 
-                          value={userRegistration.qr_code_uuid} 
-                          size={128}
-                          bgColor={"#ffffff"}
-                          fgColor={"#000000"}
-                          level={"L"}
-                          includeMargin={false}
-                        />
+                    userRegistration.checked_in ? (
+                      <div className="text-center space-y-2 p-4 flex flex-col items-center justify-center">
+                        <CheckCircle size={48} className="text-emerald-500 animate-pulse" />
+                        <h4 className="text-xs font-bold text-emerald-400 mt-2">Entry Granted</h4>
+                        <p className="text-[10px] text-slate-400 leading-normal text-center">
+                          You have checked in at the desk. Enjoy the event!
+                        </p>
                       </div>
-                      <span className="text-[9px] font-mono text-slate-500 tracking-wider text-center break-all select-all">
-                        {userRegistration.qr_code_uuid}
-                      </span>
-                    </>
+                    ) : (
+                      <>
+                        <div className="bg-white p-2 rounded-2xl shadow-md border border-slate-800 flex items-center justify-center">
+                          <QRCodeSVG 
+                            value={userRegistration.qr_code_uuid} 
+                            size={128}
+                            bgColor={"#ffffff"}
+                            fgColor={"#000000"}
+                            level={"L"}
+                            includeMargin={false}
+                          />
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-500 tracking-wider text-center break-all select-all">
+                          {userRegistration.qr_code_uuid}
+                        </span>
+                      </>
+                    )
                   ) : (
                     <div className="text-center space-y-2 p-4">
                       <AlertTriangle size={32} className="mx-auto text-amber-500" />
