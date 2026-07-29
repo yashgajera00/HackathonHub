@@ -32,6 +32,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-x#v(5547-earnnfvcm4#^
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["hackathonhub.pythonanywhere.com",]
+if DEBUG:
+    ALLOWED_HOSTS += ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -188,6 +190,12 @@ SIMPLE_JWT = {
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = ["https://hackathonhubb.vercel.app",]
+if DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+    ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "accept",
