@@ -8,3 +8,5 @@ PyJWT==2.13.0
 sqlparse==0.5.5
 typing_extensions==4.16.0
 tzdata==2026.3
+cloudinary==1.45.0
+django-cloudinary-storage==0.3.0
