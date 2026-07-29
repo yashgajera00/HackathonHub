@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HackathonProvider, useHackathon } from './context/HackathonContext';
@@ -36,6 +36,7 @@ import OrganizerDashboard from './pages/OrganizerDashboard';
 const ProtectedLayout = () => {
   const { user, loading } = useAuth();
   const { activeHackathon } = useHackathon();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (loading) {
     return (
@@ -51,9 +52,9 @@ const ProtectedLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/40">
-      <Navbar />
+      <Navbar onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
       <div className="flex flex-1 relative">
-        <Sidebar />
+        <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
         <main className="flex-1 p-6 md:p-8 overflow-y-auto h-[calc(100vh-61px)]">
           <Outlet />
         </main>

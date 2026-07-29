@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHackathon } from '../context/HackathonContext';
 import api from '../services/api';
-import { Bell, LogOut, User, ChevronDown, Check, LayoutGrid } from 'lucide-react';
+import { Bell, LogOut, User, ChevronDown, Check, LayoutGrid, Menu } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
-export default function Navbar() {
+export default function Navbar({ onToggleSidebar }) {
   const { user, logout } = useAuth();
   const { activeHackathonId, activeHackathon, selectHackathon, activeHackathonRole } = useHackathon();
   const [myHackathons, setMyHackathons] = useState([]);
@@ -59,9 +59,19 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between shadow-xs">
+    <nav className="sticky top-0 z-40 w-full bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between shadow-xs">
       {/* Brand logo & Selection */}
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-3 md:space-x-6">
+        {/* Hamburger Menu Toggle Button for mobile */}
+        {user && (
+          <button
+            onClick={onToggleSidebar}
+            className="block md:hidden p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu size={20} />
+          </button>
+        )}
         <Link to="/" className="flex items-center space-x-2">
           <span className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold font-display">H</span>
           <span className="text-xl font-bold font-display tracking-tight text-gray-900">Hackathon<span className="text-blue-600">Hub</span></span>

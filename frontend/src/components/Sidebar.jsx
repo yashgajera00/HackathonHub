@@ -7,7 +7,7 @@ import {
   History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell
 } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth();
   const { activeHackathon, activeHackathonRole, clearActiveHackathon } = useHackathon();
 
@@ -209,8 +209,23 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 h-[calc(100vh-61px)] sticky top-[61px] p-6 hidden md:block overflow-y-auto flex-shrink-0">
-      {activeHackathon ? renderHackathonSidebar() : renderGeneralSidebar()}
-    </aside>
+    <>
+      {/* Mobile Sidebar backdrop overlay */}
+      {isOpen && (
+        <div 
+          onClick={onClose}
+          className="fixed inset-0 top-[61px] bg-black/40 backdrop-blur-xs z-25 md:hidden"
+        ></div>
+      )}
+      <aside 
+        onClick={(e) => { if (e.target.closest('a') || e.target.closest('button')) onClose(); }}
+        className={`w-64 bg-white border-r border-gray-100 p-6 overflow-y-auto flex-shrink-0 transition-transform duration-300 ease-in-out
+          fixed inset-y-[61px] left-0 z-30 shadow-xl md:shadow-none md:sticky md:top-[61px] md:h-[calc(100vh-61px)] md:translate-x-0 md:z-auto
+          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        {activeHackathon ? renderHackathonSidebar() : renderGeneralSidebar()}
+      </aside>
+    </>
   );
 }

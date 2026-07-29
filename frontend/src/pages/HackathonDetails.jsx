@@ -531,12 +531,15 @@ export default function HackathonDetails() {
               <div className="h-48 bg-gray-50 animate-pulse rounded-3xl"></div>
             ) : (
               <div className="bg-radial from-slate-900 to-slate-950 text-white rounded-3xl overflow-hidden shadow-xl border border-slate-800/80 flex flex-col md:flex-row relative">
-                {/* Rip-off Stub Circles */}
+                {/* Rip-off Stub Circles (Desktop) */}
                 <div className="hidden md:block absolute left-2/3 top-0 -translate-y-1/2 w-8 h-8 bg-white rounded-full z-20"></div>
                 <div className="hidden md:block absolute left-2/3 bottom-0 translate-y-1/2 w-8 h-8 bg-white rounded-full z-20"></div>
                 
                 {/* Left Section (Ticket Info) */}
-                <div className="p-6 md:p-8 flex-grow space-y-6 md:border-r-2 md:border-dashed md:border-slate-800/60">
+                <div className="relative p-6 md:p-8 flex-grow space-y-6 border-b-2 border-dashed border-slate-800/60 md:border-b-0 md:border-r-2 md:border-slate-800/60">
+                  {/* Mobile Cutout Circles (centered on the bottom dashed border) */}
+                  <div className="block md:hidden absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 w-8 h-8 bg-white rounded-full z-20"></div>
+                  <div className="block md:hidden absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-8 h-8 bg-white rounded-full z-20"></div>
                   <div className="space-y-2">
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-500">EVENT ENTRY PASS</span>
                     <h2 className="text-xl md:text-2xl font-black font-display tracking-tight leading-tight">{activeHackathon.title}</h2>

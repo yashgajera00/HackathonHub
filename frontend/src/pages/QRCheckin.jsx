@@ -6,7 +6,7 @@ import api from '../services/api';
 import { QrCode, Scan, ArrowRight, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function QRCheckin() {
-  const { activeHackathon } = useHackathon();
+  const { activeHackathon, activeHackathonRole } = useHackathon();
   const { showToast } = useToast();
 
   const [uuidInput, setUuidInput] = useState('');
@@ -47,7 +47,11 @@ export default function QRCheckin() {
       "qr-scanner-camera",
       {
         fps: 10,
-        qrbox: { width: 220, height: 220 },
+        qrbox: (width, height) => {
+          const minDim = Math.min(width, height);
+          const boxSize = Math.floor(minDim * 0.75);
+          return { width: boxSize, height: boxSize };
+        },
         aspectRatio: 1.0,
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
         videoConstraints: {
@@ -159,9 +163,13 @@ export default function QRCheckin() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className={`max-w-4xl mx-auto py-8 px-4 gap-8 ${
+      activeHackathonRole === 'Volunteer' ? 'flex justify-center' : 'grid grid-cols-1 md:grid-cols-2'
+    }`}>
       {/* Scanner Mockup Portal */}
-      <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-xs space-y-6 flex flex-col justify-between">
+      <div className={`bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-xs space-y-6 flex flex-col justify-between ${
+        activeHackathonRole === 'Volunteer' ? 'w-full max-w-md' : ''
+      }`}>
         <div className="space-y-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900 font-display flex items-center space-x-2">
@@ -176,6 +184,12 @@ export default function QRCheckin() {
             #qr-scanner-camera {
               border: none !important;
               padding: 0 !important;
+            }
+            #qr-scanner-camera video {
+              width: 100% !important;
+              height: auto !important;
+              border-radius: 12px !important;
+              object-fit: cover !important;
             }
             #qr-scanner-camera__dashboard {
               padding: 12px !important;
@@ -274,42 +288,44 @@ export default function QRCheckin() {
       </div>
 
       {/* Simulator Portal */}
-      <div className="bg-white border border-gray-150 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
-        <div>
-          <h3 className="text-base font-bold text-gray-900 font-display">Check-in Simulator</h3>
-          <p className="text-xs text-gray-400 mt-1">Select an approved participant to simulate their scan event.</p>
-        </div>
+      {activeHackathonRole !== 'Volunteer' && (
+        <div className="bg-white border border-gray-150 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
+          <div>
+            <h3 className="text-base font-bold text-gray-900 font-display">Check-in Simulator</h3>
+            <p className="text-xs text-gray-400 mt-1">Select an approved participant to simulate their scan event.</p>
+          </div>
 
-        {loadingParticipants ? (
-          <div className="h-40 bg-gray-50 animate-pulse rounded-2xl"></div>
-        ) : pendingParticipants.length > 0 ? (
-          <div className="divide-y divide-gray-150 border border-gray-150 rounded-2xl overflow-hidden max-h-[320px] overflow-y-auto">
-            {pendingParticipants.map((p) => {
-              const u = p.user_details || {};
-              const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
-              
-              return (
-                <div key={p.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-gray-50/50 transition">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-800">{name}</span>
-                    <span className="text-[10px] font-mono text-gray-400 mt-0.5 select-all">{p.qr_code_uuid}</span>
+          {loadingParticipants ? (
+            <div className="h-40 bg-gray-50 animate-pulse rounded-2xl"></div>
+          ) : pendingParticipants.length > 0 ? (
+            <div className="divide-y divide-gray-150 border border-gray-150 rounded-2xl overflow-hidden max-h-[320px] overflow-y-auto">
+              {pendingParticipants.map((p) => {
+                const u = p.user_details || {};
+                const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
+                
+                return (
+                  <div key={p.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-gray-50/50 transition">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-gray-800">{name}</span>
+                      <span className="text-[10px] font-mono text-gray-400 mt-0.5 select-all">{p.qr_code_uuid}</span>
+                    </div>
+                    <button
+                      onClick={() => handleCheckInSubmit(null, p.qr_code_uuid)}
+                      className="py-1 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-100 rounded-lg text-[10px] transition"
+                    >
+                      Simulate Scan
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleCheckInSubmit(null, p.qr_code_uuid)}
-                    className="py-1 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-100 rounded-lg text-[10px] transition"
-                  >
-                    Simulate Scan
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center text-gray-400 text-xs py-12 bg-gray-50 rounded-2xl">
-            No pending approved check-ins left.
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 text-xs py-12 bg-gray-50 rounded-2xl">
+              No pending approved check-ins left.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Scan Results Modal Overlay */}
       {modalData && (
