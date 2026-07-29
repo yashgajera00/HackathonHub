@@ -13,6 +13,14 @@ export default function QRCheckin() {
   const [loading, setLoading] = useState(false);
   const [outcome, setOutcome] = useState(null);
   const isScanningRef = useRef(false);
+  const [modalData, setModalData] = useState(null);
+
+  const closeModal = () => {
+    setModalData(null);
+    setTimeout(() => {
+      isScanningRef.current = false;
+    }, 1500); // 1.5s cooldown before next scan
+  };
 
   // Simulated scan database helpers
   const [pendingParticipants, setPendingParticipants] = useState([]);
@@ -97,7 +105,13 @@ export default function QRCheckin() {
         ? `${response.data.registration.user_details.first_name || ''} ${response.data.registration.user_details.last_name || ''}`.trim() || response.data.registration.user_details.username
         : 'Participant';
       showToast(response.data.detail, 'success');
-      alert(`✅ CHECK-IN SUCCESSFUL!\n\nUser: ${participantName}\nCode: ${targetUuid}\nStatus: Checked In Successfully.`);
+      setModalData({
+        success: true,
+        title: "Check-in Successful",
+        message: response.data.detail,
+        user: participantName,
+        code: targetUuid
+      });
       setOutcome({
         success: true,
         message: response.data.detail,
@@ -109,16 +123,18 @@ export default function QRCheckin() {
       console.error(err);
       const errorMsg = err.response?.data?.detail || 'Scan verification failed. Code is invalid or not approved.';
       showToast(errorMsg, 'error');
-      alert(`❌ INVALID OR DUP-CHECK-IN!\n\nError: ${errorMsg}\nCode Attempted: ${targetUuid}`);
+      setModalData({
+        success: false,
+        title: "Check-in Failed",
+        message: errorMsg,
+        code: targetUuid
+      });
       setOutcome({
         success: false,
         message: errorMsg
       });
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        isScanningRef.current = false;
-      }, 3500);
     }
   };
 
@@ -274,6 +290,55 @@ export default function QRCheckin() {
           </div>
         )}
       </div>
+
+      {/* Scan Results Modal Overlay */}
+      {modalData && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 text-xs">
+          <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-155">
+            <div className="flex justify-center">
+              {modalData.success ? (
+                <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border border-emerald-100">
+                  <CheckCircle size={36} className="stroke-[2.5]" />
+                </div>
+              ) : (
+                <div className="h-16 w-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center border border-rose-100">
+                  <AlertTriangle size={36} className="stroke-[2.5]" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <h3 className={`text-lg font-black font-display tracking-tight ${
+                modalData.success ? 'text-emerald-600' : 'text-rose-600'
+              }`}>
+                {modalData.title}
+              </h3>
+              <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                {modalData.message}
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-left text-[10px] font-mono text-gray-600 space-y-1">
+              {modalData.success && modalData.user && (
+                <p><span className="font-bold text-gray-400">User:</span> {modalData.user}</p>
+              )}
+              <p className="break-all"><span className="font-bold text-gray-400">Code:</span> {modalData.code}</p>
+              <p><span className="font-bold text-gray-400">Timestamp:</span> {new Date().toLocaleTimeString()}</p>
+            </div>
+
+            <button
+              onClick={closeModal}
+              className={`w-full py-2.5 text-white font-bold rounded-xl text-xs transition shadow-sm ${
+                modalData.success 
+                  ? 'bg-emerald-600 hover:bg-emerald-700' 
+                  : 'bg-rose-600 hover:bg-rose-700'
+              }`}
+            >
+              Scan Next / Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

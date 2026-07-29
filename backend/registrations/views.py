@@ -174,6 +174,20 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             return Response({"detail": "qr_code_uuid is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         registration = get_object_or_404(Registration, qr_code_uuid=qr_code_uuid)
+
+        # Verify the scanning user is a staff member of THIS specific hackathon
+        if not request.user.is_superuser:
+            is_staff = HackathonMember.objects.filter(
+                hackathon=registration.hackathon,
+                user=request.user,
+                role__in=['Organizer', 'Volunteer'],
+                invitation_status='Accepted'
+            ).exists()
+            if not is_staff:
+                return Response({
+                    "detail": f"You do not have permission to check-in participants for {registration.hackathon.title}."
+                }, status=status.HTTP_403_FORBIDDEN)
+
         if registration.status != 'Approved':
             return Response({"detail": "This registration is not approved."}, status=status.HTTP_400_BAD_REQUEST)
 
