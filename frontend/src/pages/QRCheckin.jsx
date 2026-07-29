@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
@@ -20,6 +21,38 @@ export default function QRCheckin() {
     if (activeHackathon) {
       fetchUncheckedParticipants();
     }
+  }, [activeHackathon]);
+
+  useEffect(() => {
+    if (!activeHackathon) return;
+
+    const scanner = new Html5QrcodeScanner(
+      "qr-scanner-camera",
+      {
+        fps: 10,
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0
+      },
+      false
+    );
+
+    const onScanSuccess = (decodedText) => {
+      if (decodedText) {
+        handleCheckInSubmit(null, decodedText);
+      }
+    };
+
+    const onScanFailure = (error) => {
+      // ignore
+    };
+
+    scanner.render(onScanSuccess, onScanFailure);
+
+    return () => {
+      scanner.clear().catch((err) => {
+        console.error("Failed to clear html5-qrcode scanner", err);
+      });
+    };
   }, [activeHackathon]);
 
   const fetchUncheckedParticipants = async () => {
@@ -93,11 +126,50 @@ export default function QRCheckin() {
             <p className="text-xs text-gray-400 mt-1">Scan or input participant check-in code to check them in.</p>
           </div>
 
-          {/* Scanner Mockup Border */}
-          <div className="h-44 bg-gray-900 border-4 border-dashed border-blue-600/60 rounded-3xl flex flex-col items-center justify-center text-white relative overflow-hidden p-6">
-            <div className="absolute inset-0 bg-linear-to-b from-blue-500/10 via-transparent to-transparent animate-pulse-slow"></div>
-            <Scan size={44} className="text-blue-500 animate-pulse" />
-            <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-3">Camera Scanner Ready</span>
+          {/* Custom Styles to Override html5-qrcode's Native Styling */}
+          <style>{`
+            #qr-scanner-camera {
+              border: none !important;
+              padding: 0 !important;
+            }
+            #qr-scanner-camera__dashboard {
+              padding: 12px !important;
+              background: #f8fafc !important;
+              border-radius: 16px !important;
+              border: 1px solid #e2e8f0 !important;
+            }
+            #qr-scanner-camera button {
+              background-color: #2563eb !important;
+              color: white !important;
+              border: none !important;
+              border-radius: 8px !important;
+              padding: 8px 16px !important;
+              font-size: 11px !important;
+              font-weight: bold !important;
+              cursor: pointer !important;
+              transition: background 0.15s ease !important;
+              margin: 4px !important;
+            }
+            #qr-scanner-camera button:hover {
+              background-color: #1d4ed8 !important;
+            }
+            #qr-scanner-camera select {
+              border: 1px solid #e2e8f0 !important;
+              border-radius: 8px !important;
+              padding: 6px 10px !important;
+              font-size: 11px !important;
+              background-color: white !important;
+              outline: none !important;
+            }
+          `}</style>
+
+          {/* Real Web Camera Scanner Container */}
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-150 relative overflow-hidden">
+            <div id="qr-scanner-camera" className="w-full rounded-xl overflow-hidden bg-black"></div>
+            <p className="text-[10px] text-gray-400 mt-2 text-center font-semibold flex items-center justify-center space-x-1.5">
+              <Scan size={12} className="text-blue-600 animate-pulse" />
+              <span>Camera Stream ready</span>
+            </p>
           </div>
 
           {/* Manual input */}
