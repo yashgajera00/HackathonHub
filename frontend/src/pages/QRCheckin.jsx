@@ -14,9 +14,17 @@ export default function QRCheckin() {
   const [outcome, setOutcome] = useState(null);
   const isScanningRef = useRef(false);
   const [modalData, setModalData] = useState(null);
+  const scannerRef = useRef(null);
 
   const closeModal = () => {
     setModalData(null);
+    if (scannerRef.current) {
+      try {
+        scannerRef.current.resume();
+      } catch (err) {
+        console.error("Failed to resume scanner stream", err);
+      }
+    }
     setTimeout(() => {
       isScanningRef.current = false;
     }, 1500); // 1.5s cooldown before next scan
@@ -48,6 +56,7 @@ export default function QRCheckin() {
       },
       false
     );
+    scannerRef.current = scanner;
 
     const onScanSuccess = (decodedText) => {
       if (decodedText && !isScanningRef.current) {
@@ -63,6 +72,7 @@ export default function QRCheckin() {
     scanner.render(onScanSuccess, onScanFailure);
 
     return () => {
+      scannerRef.current = null;
       scanner.clear().catch((err) => {
         console.error("Failed to clear html5-qrcode scanner", err);
       });
@@ -97,9 +107,19 @@ export default function QRCheckin() {
 
     setLoading(true);
     setOutcome(null);
+
+    if (scannerRef.current) {
+      try {
+        scannerRef.current.pause(true);
+      } catch (err) {
+        console.error("Failed to pause scanner", err);
+      }
+    }
+
     try {
       const response = await api.post('/registrations/check_in_by_qr/', {
-        qr_code_uuid: targetUuid
+        qr_code_uuid: targetUuid,
+        hackathon_id: activeHackathon?.id
       });
       const participantName = response.data.registration?.user_details
         ? `${response.data.registration.user_details.first_name || ''} ${response.data.registration.user_details.last_name || ''}`.trim() || response.data.registration.user_details.username

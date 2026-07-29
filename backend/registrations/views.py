@@ -170,22 +170,30 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         Check-in by scanning QR code (UUID lookup)
         """
         qr_code_uuid = request.data.get('qr_code_uuid')
+        hackathon_id = request.data.get('hackathon_id') or request.headers.get('X-Hackathon-Id')
         if not qr_code_uuid:
             return Response({"detail": "qr_code_uuid is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         registration = get_object_or_404(Registration, qr_code_uuid=qr_code_uuid)
 
+        # Enforce that the scanned ticket belongs to the currently active hackathon context
+        if hackathon_id and str(registration.hackathon.id) != str(hackathon_id):
+            return Response({
+                "detail": f"This ticket belongs to {registration.hackathon.title}, not the currently selected hackathon."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         # Verify the scanning user is a staff member of THIS specific hackathon
+        target_hackathon_id = hackathon_id or registration.hackathon.id
         if not request.user.is_superuser:
             is_staff = HackathonMember.objects.filter(
-                hackathon=registration.hackathon,
+                hackathon_id=target_hackathon_id,
                 user=request.user,
                 role__in=['Organizer', 'Volunteer'],
                 invitation_status='Accepted'
             ).exists()
             if not is_staff:
                 return Response({
-                    "detail": f"You do not have permission to check-in participants for {registration.hackathon.title}."
+                    "detail": "You do not have permission to check-in participants for this hackathon."
                 }, status=status.HTTP_403_FORBIDDEN)
 
         if registration.status != 'Approved':
