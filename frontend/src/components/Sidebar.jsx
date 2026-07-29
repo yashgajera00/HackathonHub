@@ -80,6 +80,10 @@ export default function Sidebar() {
               <UserCheck size={18} />
               <span>Registrations</span>
             </NavLink>
+            <NavLink to="/qr-checkin" className={navLinkClass}>
+              <QrCode size={18} />
+              <span>Scan QR Check-in</span>
+            </NavLink>
             <NavLink to="/members" className={navLinkClass}>
               <Users size={18} />
               <span>Staff & Roles</span>

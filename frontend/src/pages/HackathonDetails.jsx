@@ -4,7 +4,7 @@ import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import { 
   Calendar, MapPin, Users, Award, BookOpen, Clock, Plus, Trash2, 
-  Sparkles, CheckCircle, Download, ShieldCheck, Trophy
+  Sparkles, CheckCircle, Download, ShieldCheck, Trophy, RefreshCw, AlertTriangle
 } from 'lucide-react';
 
 export default function HackathonDetails() {
@@ -15,11 +15,13 @@ export default function HackathonDetails() {
   const [schedule, setSchedule] = useState([]);
   const [rules, setRules] = useState([]);
   const [cert, setCert] = useState(null);
+  const [userRegistration, setUserRegistration] = useState(null);
   
   // Loading flags
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [loadingRules, setLoadingRules] = useState(false);
   const [loadingCert, setLoadingCert] = useState(false);
+  const [loadingRegistration, setLoadingRegistration] = useState(false);
 
   // Forms
   const [showScheduleForm, setShowScheduleForm] = useState(false);
@@ -42,11 +44,32 @@ export default function HackathonDetails() {
     if (activeHackathon) {
       fetchSchedule();
       fetchRules();
+      fetchUserRegistration();
       if (activeHackathonRole === 'Participant') {
         fetchCertificate();
       }
     }
   }, [activeHackathon, activeHackathonRole]);
+
+  const fetchUserRegistration = async () => {
+    try {
+      setLoadingRegistration(true);
+      const response = await api.get('/registrations/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      const regs = response.data.results || response.data;
+      if (regs.length > 0) {
+        setUserRegistration(regs[0]);
+      } else {
+        setUserRegistration(null);
+      }
+    } catch (e) {
+      console.error("Failed to fetch user registration", e);
+      setUserRegistration(null);
+    } finally {
+      setLoadingRegistration(false);
+    }
+  };
 
   const fetchSchedule = async () => {
     try {
@@ -237,6 +260,15 @@ export default function HackathonDetails() {
           <span>Rules</span>
           {activeTab === 'rules' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
         </button>
+        {userRegistration && (
+          <button
+            onClick={() => setActiveTab('ticket')}
+            className={`pb-3 relative transition ${activeTab === 'ticket' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            <span>Check-in QR Ticket</span>
+            {activeTab === 'ticket' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
+          </button>
+        )}
         {activeHackathonRole === 'Participant' && (
           <button
             onClick={() => setActiveTab('certificate')}
@@ -473,6 +505,117 @@ export default function HackathonDetails() {
             ) : (
               <div className="text-center text-gray-400 py-12 text-xs">
                 No rules have been uploaded yet.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Ticket Tab */}
+        {activeTab === 'ticket' && userRegistration && (
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold font-display text-gray-900 font-sans">Check-in QR Ticket</h3>
+              <button
+                type="button"
+                onClick={fetchUserRegistration}
+                disabled={loadingRegistration}
+                className="flex items-center space-x-1.5 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-xl text-xs font-semibold transition"
+              >
+                <RefreshCw size={14} className={loadingRegistration ? "animate-spin" : ""} />
+                <span>Refresh Status</span>
+              </button>
+            </div>
+
+            {loadingRegistration ? (
+              <div className="h-48 bg-gray-50 animate-pulse rounded-3xl"></div>
+            ) : (
+              <div className="bg-radial from-slate-900 to-slate-950 text-white rounded-3xl overflow-hidden shadow-xl border border-slate-800/80 flex flex-col md:flex-row relative">
+                {/* Rip-off Stub Circles */}
+                <div className="hidden md:block absolute left-2/3 top-0 -translate-y-1/2 w-8 h-8 bg-white rounded-full z-20"></div>
+                <div className="hidden md:block absolute left-2/3 bottom-0 translate-y-1/2 w-8 h-8 bg-white rounded-full z-20"></div>
+                
+                {/* Left Section (Ticket Info) */}
+                <div className="p-6 md:p-8 flex-grow space-y-6 md:border-r-2 md:border-dashed md:border-slate-800/60">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-500">EVENT ENTRY PASS</span>
+                    <h2 className="text-xl md:text-2xl font-black font-display tracking-tight leading-tight">{activeHackathon.title}</h2>
+                    <p className="text-xs text-slate-400 font-medium">{activeHackathon.venue}, {activeHackathon.city}</p>
+                  </div>
+
+                  <div className="border-t border-slate-800/80 my-4"></div>
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-500 uppercase text-[9px] font-bold tracking-wider">Participant</span>
+                      <p className="font-bold text-slate-200 mt-0.5">
+                        {userRegistration.user_details 
+                          ? `${userRegistration.user_details.first_name || ''} ${userRegistration.user_details.last_name || ''}`.trim() || userRegistration.user_details.username
+                          : 'Attendee'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 uppercase text-[9px] font-bold tracking-wider">Username</span>
+                      <p className="font-bold text-slate-200 mt-0.5 font-mono">@{userRegistration.user_details?.username}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 uppercase text-[9px] font-bold tracking-wider">Role</span>
+                      <p className="font-bold text-slate-200 mt-0.5">Participant</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 uppercase text-[9px] font-bold tracking-wider">Pass Status</span>
+                      <div className="mt-0.5">
+                        {userRegistration.checked_in ? (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase rounded-lg">
+                            Checked In
+                          </span>
+                        ) : userRegistration.status === 'Approved' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-black uppercase rounded-lg animate-pulse">
+                            Awaiting Desk Scan
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-black uppercase rounded-lg">
+                            {userRegistration.status}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {userRegistration.checked_in && userRegistration.checked_in_at && (
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl flex items-start space-x-2 text-[10px] text-emerald-400 font-medium">
+                      <ShieldCheck size={14} className="mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-bold">Desk Check-in Complete</p>
+                        <p className="text-[9px] text-slate-400 mt-0.5">Verified at: {new Date(userRegistration.checked_in_at).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Section (QR Code) */}
+                <div className="p-6 md:p-8 md:w-1/3 flex flex-col items-center justify-center space-y-4 bg-slate-950/40 relative">
+                  {userRegistration.status === 'Approved' ? (
+                    <>
+                      <div className="bg-white p-2 rounded-2xl shadow-md border border-slate-800">
+                        <img 
+                          src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${userRegistration.qr_code_uuid}`}
+                          alt="Verification QR"
+                          className="h-32 w-32 object-contain"
+                        />
+                      </div>
+                      <span className="text-[9px] font-mono text-slate-500 tracking-wider text-center break-all select-all">
+                        {userRegistration.qr_code_uuid}
+                      </span>
+                    </>
+                  ) : (
+                    <div className="text-center space-y-2 p-4">
+                      <AlertTriangle size={32} className="mx-auto text-amber-500" />
+                      <p className="text-[10px] text-slate-400 leading-normal">
+                        QR code is generated once your registration request is approved.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

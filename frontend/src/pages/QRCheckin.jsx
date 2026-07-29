@@ -54,7 +54,11 @@ export default function QRCheckin() {
       const response = await api.post('/registrations/check_in_by_qr/', {
         qr_code_uuid: targetUuid
       });
+      const participantName = response.data.registration?.user_details
+        ? `${response.data.registration.user_details.first_name || ''} ${response.data.registration.user_details.last_name || ''}`.trim() || response.data.registration.user_details.username
+        : 'Participant';
       showToast(response.data.detail, 'success');
+      alert(`✅ CHECK-IN SUCCESSFUL!\n\nUser: ${participantName}\nCode: ${targetUuid}\nStatus: Checked In Successfully.`);
       setOutcome({
         success: true,
         message: response.data.detail,
@@ -64,9 +68,12 @@ export default function QRCheckin() {
       fetchUncheckedParticipants(); // Refresh simulator list
     } catch (err) {
       console.error(err);
+      const errorMsg = err.response?.data?.detail || 'Scan verification failed. Code is invalid or not approved.';
+      showToast(errorMsg, 'error');
+      alert(`❌ INVALID OR DUP-CHECK-IN!\n\nError: ${errorMsg}\nCode Attempted: ${targetUuid}`);
       setOutcome({
         success: false,
-        message: err.response?.data?.detail || 'Scan verification failed. Code is invalid or not approved.'
+        message: errorMsg
       });
     } finally {
       setLoading(false);
