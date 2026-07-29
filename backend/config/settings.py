@@ -14,18 +14,22 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-x#v(5547-earnnfvcm4#^uj86j%+o_^^7g9axsd9m*roi200ee"
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-x#v(5547-earnnfvcm4#^uj86j%+o_^^7g9axsd9m*roi200ee")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["hackathonhub.pythonanywhere.com",]
 
@@ -144,9 +148,9 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'nnjhguqe'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '871687177343487'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '8Zw8d0iZE-n9320n4YXi6Llicm4'),
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
