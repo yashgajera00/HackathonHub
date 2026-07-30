@@ -118,13 +118,45 @@ export default function TeamsList() {
     }
   };
 
+  const handleApproveTeam = async (teamId) => {
+    try {
+      const response = await api.post(`/teams/${teamId}/approve/`);
+      showToast('Team approved & selected for hackathon!', 'success');
+      setTeams(prev => prev.map(t => t.id === teamId ? response.data : t));
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to approve team.', 'error');
+    }
+  };
+
+  const handleRejectTeam = async (teamId) => {
+    try {
+      const response = await api.post(`/teams/${teamId}/reject/`);
+      showToast('Team selection rejected.', 'success');
+      setTeams(prev => prev.map(t => t.id === teamId ? response.data : t));
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to reject team.', 'error');
+    }
+  };
+
   const isJudge = activeHackathonRole === 'Judge';
+  const isOrganizer = activeHackathonRole === 'Organizer';
 
   return (
     <div className="space-y-6 py-4">
-      <div>
-        <h2 className="text-2xl font-bold font-display text-gray-900">Teams & Submissions</h2>
-        <p className="text-xs text-gray-500 mt-1">Review registrations, repository submissions, and evaluation scores.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold font-display text-gray-900">Teams & Submissions</h2>
+          <p className="text-xs text-gray-500 mt-1">Review registrations, repository submissions, and evaluation scores.</p>
+        </div>
+        <button
+          onClick={fetchTeams}
+          className="p-2 border border-gray-200 hover:bg-gray-50 rounded-xl text-gray-500 hover:text-gray-700 transition flex items-center justify-center"
+          title="Refresh List"
+        >
+          <RefreshCw size={16} />
+        </button>
       </div>
 
       {loading ? (
@@ -146,19 +178,29 @@ export default function TeamsList() {
                   {/* Title & Members */}
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-base font-bold text-gray-900">{t.name}</h3>
+                      <h3 className="text-base font-bold text-gray-900 truncate max-w-[200px]" title={t.name}>{t.name}</h3>
                       <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Leader: {t.created_by_username}</p>
                     </div>
-                    {savedScore && (
-                      <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-[10px] rounded-lg border border-blue-100">
-                        Scored: {savedScore.total_score}/40
+                    <div className="flex flex-col items-end space-y-1.5 flex-shrink-0">
+                      <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border ${
+                        t.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+                        t.status === 'Submitted' ? 'bg-blue-50 text-blue-800 border-blue-100' :
+                        t.status === 'Rejected' ? 'bg-rose-50 text-rose-800 border-rose-100' :
+                        'bg-amber-50 text-amber-800 border-amber-100'
+                      }`}>
+                        {t.status || 'Pending'}
                       </span>
-                    )}
+                      {savedScore && (
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold text-[9px] rounded-lg border border-blue-100">
+                          Scored: {savedScore.total_score}/40
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Members list */}
                   <div className="space-y-1">
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Members</span>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Members ({t.members.length})</span>
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {t.members.map((m) => (
                         <span key={m.id} className="text-[10px] px-2 py-0.5 bg-gray-50 text-gray-600 rounded-md border border-gray-200/50">
@@ -288,6 +330,27 @@ export default function TeamsList() {
                         </div>
                       </form>
                     )}
+                  </div>
+                )}
+
+                {/* Organizer Approval Panel */}
+                {isOrganizer && t.status === 'Submitted' && (
+                  <div className="pt-4 border-t border-gray-50 mt-6 flex justify-between items-center">
+                    <span className="text-xs text-gray-500 font-semibold">Team Selection Review</span>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleApproveTeam(t.id)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleRejectTeam(t.id)}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition"
+                      >
+                        Reject
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

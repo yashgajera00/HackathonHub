@@ -23,9 +23,9 @@ class TeamSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'hackathon', 'name', 'project_title', 'project_description', 
             'project_submission_link', 'created_by', 'created_by_username', 
-            'created_at', 'updated_at', 'members', 'is_leader'
+            'created_at', 'updated_at', 'members', 'is_leader', 'status'
         )
-        read_only_fields = ('id', 'created_by', 'created_at', 'updated_at', 'members', 'is_leader')
+        read_only_fields = ('id', 'created_by', 'created_at', 'updated_at', 'members', 'is_leader', 'status')
 
     def get_is_leader(self, obj):
         request = self.context.get('request')

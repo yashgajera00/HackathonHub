@@ -81,6 +81,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         - Otherwise delete the team
         """
         team = self.get_object()
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot leave team after submission or approval."}, status=status.HTTP_400_BAD_REQUEST)
         member_record = get_object_or_404(TeamMember, team=team, user=request.user)
 
         with transaction.atomic():
@@ -121,6 +123,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         Leader kicks a member from the team
         """
         team = self.get_object()
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot modify team roster after submission or approval."}, status=status.HTTP_400_BAD_REQUEST)
         if team.created_by != request.user and not request.user.is_superuser:
             return Response({"detail": "Only the Team Leader can kick members."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -155,6 +159,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         Leader submits project details/submission links
         """
         team = self.get_object()
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot edit deliverables after submission or approval."}, status=status.HTTP_400_BAD_REQUEST)
         if team.created_by != request.user and not request.user.is_superuser:
             return Response({"detail": "Only the Team Leader can submit projects."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -178,6 +184,128 @@ class TeamViewSet(viewsets.ModelViewSet):
                     title="Project Updated",
                     message=f"Leader updated team project details for {team.name}."
                 )
+
+        return Response(self.get_serializer(team).data)
+
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        """
+        Team leader submits the team for organizer approval.
+        Enforces team size constraints.
+        """
+        team = self.get_object()
+        if team.created_by != request.user and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can submit the team."}, status=status.HTTP_403_FORBIDDEN)
+            
+        if team.status not in ['Pending', 'Rejected']:
+            return Response({"detail": "Team can only be submitted if it is Pending or Rejected."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check membership count against min/max limits
+        member_count = team.members.count()
+        min_size = team.hackathon.min_team_size
+        max_size = team.hackathon.max_team_size
+
+        if member_count < min_size:
+            return Response({
+                "detail": f"Team size ({member_count}) is less than the minimum required size ({min_size}) for this hackathon."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if member_count > max_size:
+            return Response({
+                "detail": f"Team size ({member_count}) exceeds the maximum allowed size ({max_size}) for this hackathon."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        team.status = 'Submitted'
+        team.save()
+
+        log_activity(
+            request.user,
+            "Submitted team",
+            hackathon=team.hackathon,
+            details=f"Submitted team {team.name} for organizer approval."
+        )
+
+        return Response(self.get_serializer(team).data)
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """
+        Organizer approves the team submission, making it selected for the hackathon.
+        """
+        team = self.get_object()
+        
+        # Check if requester is organizer
+        is_organizer = HackathonMember.objects.filter(
+            hackathon=team.hackathon,
+            user=request.user,
+            role='Organizer',
+            invitation_status='Accepted'
+        ).exists()
+
+        if not is_organizer and not request.user.is_superuser:
+            return Response({"detail": "Only Hackathon Organizers can approve teams."}, status=status.HTTP_403_FORBIDDEN)
+
+        if team.status != 'Submitted':
+            return Response({"detail": "Only submitted teams can be approved."}, status=status.HTTP_400_BAD_REQUEST)
+
+        team.status = 'Approved'
+        team.save()
+
+        log_activity(
+            request.user,
+            "Approved team",
+            hackathon=team.hackathon,
+            details=f"Approved team: {team.name}"
+        )
+
+        # Notify team members
+        for member in team.members.all():
+            Notification.objects.create(
+                user=member.user,
+                title="Team Approved & Selected",
+                message=f"Congratulations! Your team '{team.name}' has been approved and selected for {team.hackathon.title}."
+            )
+
+        return Response(self.get_serializer(team).data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        """
+        Organizer rejects the team submission.
+        """
+        team = self.get_object()
+        
+        # Check if requester is organizer
+        is_organizer = HackathonMember.objects.filter(
+            hackathon=team.hackathon,
+            user=request.user,
+            role='Organizer',
+            invitation_status='Accepted'
+        ).exists()
+
+        if not is_organizer and not request.user.is_superuser:
+            return Response({"detail": "Only Hackathon Organizers can reject teams."}, status=status.HTTP_403_FORBIDDEN)
+
+        if team.status != 'Submitted':
+            return Response({"detail": "Only submitted teams can be rejected."}, status=status.HTTP_400_BAD_REQUEST)
+
+        team.status = 'Rejected'
+        team.save()
+
+        log_activity(
+            request.user,
+            "Rejected team",
+            hackathon=team.hackathon,
+            details=f"Rejected team: {team.name}"
+        )
+
+        # Notify team members
+        for member in team.members.all():
+            Notification.objects.create(
+                user=member.user,
+                title="Team Submission Rejected",
+                message=f"Your team submission for '{team.name}' in {team.hackathon.title} was rejected by organizers."
+            )
 
         return Response(self.get_serializer(team).data)
 
@@ -205,6 +333,9 @@ class TeamInvitationViewSet(viewsets.ModelViewSet):
         # Check if current user is the leader of the team
         if team.created_by != self.request.user and not self.request.user.is_superuser:
             self.permission_denied(self.request, message="Only the Team Leader can invite members.")
+
+        if team.status in ['Submitted', 'Approved']:
+            self.permission_denied(self.request, message="Cannot invite members to a submitted or approved team.")
 
         # Check if team size limit exceeded
         max_size = team.hackathon.max_team_size
@@ -234,6 +365,9 @@ class TeamInvitationViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
 
         team = invitation.team
+        
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot join a submitted or approved team."}, status=status.HTTP_400_BAD_REQUEST)
         
         # Verify user is not already in a team
         if TeamMember.objects.filter(hackathon=team.hackathon, user=request.user).exists():

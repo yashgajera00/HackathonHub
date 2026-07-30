@@ -27,6 +27,7 @@ export default function MyTeam() {
     project_submission_link: ''
   });
   const [savingProject, setSavingProject] = useState(false);
+  const [submittingTeam, setSubmittingTeam] = useState(false);
 
   useEffect(() => {
     if (activeHackathon) {
@@ -136,6 +137,23 @@ export default function MyTeam() {
     } catch (err) {
       console.error(err);
       showToast('Failed to decline invitation.', 'error');
+    }
+  };
+
+  const handleSubmitTeam = async () => {
+    if (!window.confirm('Are you sure you want to submit your team? You will not be able to modify the roster or deliverables until review is complete.')) {
+      return;
+    }
+    setSubmittingTeam(true);
+    try {
+      await api.post(`/teams/${team.id}/submit/`);
+      showToast('Team submitted for approval!', 'success');
+      fetchMyTeamState();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to submit team.', 'error');
+    } finally {
+      setSubmittingTeam(false);
     }
   };
 
@@ -274,13 +292,27 @@ export default function MyTeam() {
               <h2 className="text-xl font-bold text-gray-900 truncate">{team.name}</h2>
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active Team</span>
             </div>
-            <button
-              onClick={handleLeaveTeam}
-              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-              title="Leave Team"
-            >
-              <LogOut size={16} />
-            </button>
+            {(team.status === 'Pending' || team.status === 'Rejected') && (
+              <button
+                onClick={handleLeaveTeam}
+                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                title="Leave Team"
+              >
+                <LogOut size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Status</span>
+            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border ${
+              team.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+              team.status === 'Submitted' ? 'bg-blue-50 text-blue-800 border-blue-100' :
+              team.status === 'Rejected' ? 'bg-rose-50 text-rose-800 border-rose-100' :
+              'bg-amber-50 text-amber-800 border-amber-100'
+            }`}>
+              {team.status || 'Pending'}
+            </span>
           </div>
 
           <div className="border-t border-gray-100 my-2"></div>
@@ -306,7 +338,7 @@ export default function MyTeam() {
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${m.role === 'Leader' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
                         {m.role}
                       </span>
-                      {isLeader && m.role !== 'Leader' && (
+                      {isLeader && m.role !== 'Leader' && (team.status === 'Pending' || team.status === 'Rejected') && (
                         <button
                           onClick={() => handleKick(u.id, name)}
                           className="text-gray-400 hover:text-red-600 p-0.5 transition"
@@ -324,7 +356,7 @@ export default function MyTeam() {
         </div>
 
         {/* Invite Peer Form (Leader only) */}
-        {isLeader && (
+        {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
           <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-gray-900">Invite a Peer</h3>
             <form onSubmit={handleInviteUser} className="space-y-3 text-xs font-semibold text-gray-400">
@@ -350,6 +382,35 @@ export default function MyTeam() {
             </form>
           </div>
         )}
+
+        {/* Submit Team Panel (Leader only) */}
+        {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
+            <h3 className="text-sm font-bold text-gray-900">Submit Team</h3>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Once submitted, your team will be reviewed by staff. Your roster and project details will be locked.
+            </p>
+            
+            {team.members.length < activeHackathon.min_team_size ? (
+              <div className="p-3 bg-amber-50 border border-amber-100 text-amber-800 rounded-xl text-[10px] font-semibold leading-relaxed">
+                Your team has {team.members.length} member(s). You need at least {activeHackathon.min_team_size} member(s) to submit (Max: {activeHackathon.max_team_size}).
+              </div>
+            ) : (
+              <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-xl text-[10px] font-semibold leading-relaxed">
+                Team size is valid ({team.members.length} members). Ready to submit!
+              </div>
+            )}
+
+            <button
+              onClick={handleSubmitTeam}
+              disabled={submittingTeam || team.members.length < activeHackathon.min_team_size}
+              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
+            >
+              {submittingTeam && <RefreshCw size={12} className="animate-spin" />}
+              <span>Submit Team</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Project Submission Form Panel */}
@@ -359,7 +420,7 @@ export default function MyTeam() {
           <p className="text-sm text-gray-500 mt-1">Submit your workspace and project details to judges.</p>
         </div>
 
-        {isLeader ? (
+        {isLeader && (team.status === 'Pending' || team.status === 'Rejected') ? (
           <form onSubmit={handleProjectSubmit} className="space-y-6">
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Project Title</label>
@@ -436,10 +497,22 @@ export default function MyTeam() {
               </div>
             </div>
             
-            <div className="p-4 bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl flex items-start space-x-3 text-xs">
-              <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p>Only the Team Leader (<span className="font-semibold">{team.created_by_username}</span>) has rights to update project submissions.</p>
-            </div>
+            {team.status === 'Submitted' ? (
+              <div className="p-4 bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl flex items-start space-x-3 text-xs">
+                <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5 animate-pulse" />
+                <p>This team is currently <strong>Submitted (Awaiting Approval)</strong>. Roster and project deliverables are locked for review.</p>
+              </div>
+            ) : team.status === 'Approved' ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-2xl flex items-start space-x-3 text-xs">
+                <ShieldCheck className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <p>Congratulations! Your team has been <strong>Approved & Selected</strong>. All details are finalized.</p>
+              </div>
+            ) : (
+              <div className="p-4 bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl flex items-start space-x-3 text-xs">
+                <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p>Only the Team Leader (<span className="font-semibold">{team.created_by_username}</span>) has rights to update project submissions.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

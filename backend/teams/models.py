@@ -3,12 +3,20 @@ from django.conf import settings
 from hackathons.models import Hackathon
 
 class Team(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Submitted', 'Submitted'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
     hackathon = models.ForeignKey(Hackathon, on_delete=models.CASCADE, related_name='teams')
     name = models.CharField(max_length=100)
     project_title = models.CharField(max_length=255, blank=True, null=True)
     project_description = models.TextField(blank=True, null=True)
     project_submission_link = models.URLField(blank=True, null=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_teams')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
