@@ -220,16 +220,18 @@ export default function RegistrationsList() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end space-x-2">
                             {/* Organizer Registration Approvals */}
-                            {isOrganizer && (r.status === 'Pending' || r.status === 'Rejected') && (
+                            {isOrganizer && (
                               <>
-                                <button
-                                  onClick={() => handleApprove(r.id)}
-                                  className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-100 rounded-lg transition"
-                                  title="Approve registration"
-                                >
-                                  Approve
-                                </button>
-                                {r.status === 'Pending' && (
+                                {(r.status === 'Pending' || r.status === 'Rejected') && (
+                                  <button
+                                    onClick={() => handleApprove(r.id)}
+                                    className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-100 rounded-lg transition"
+                                    title="Approve registration"
+                                  >
+                                    Approve
+                                  </button>
+                                )}
+                                {(r.status === 'Pending' || r.status === 'Approved') && (
                                   <button
                                     onClick={() => handleReject(r.id)}
                                     className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-100 rounded-lg transition"
@@ -239,17 +241,6 @@ export default function RegistrationsList() {
                                   </button>
                                 )}
                               </>
-                            )}
-
-                            {/* Volunteer / Staff Desk check-in */}
-                            {r.status === 'Approved' && !r.checked_in && (
-                              <button
-                                onClick={() => handleManualCheckIn(r.id)}
-                                className="p-1 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-100 rounded-lg transition flex items-center space-x-1"
-                              >
-                                <UserCheck size={12} />
-                                <span>Check In</span>
-                              </button>
                             )}
                             
                             {r.status === 'Approved' && r.checked_in && (

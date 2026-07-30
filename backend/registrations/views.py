@@ -115,11 +115,20 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         Reject registration
         """
         registration = self.get_object()
-        if registration.status != 'Pending':
-            return Response({"detail": "Registration is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+        if registration.status not in ['Pending', 'Approved']:
+            return Response({"detail": "Registration must be pending or approved to reject."}, status=status.HTTP_400_BAD_REQUEST)
 
         registration.status = 'Rejected'
+        registration.checked_in = False
+        registration.checked_in_at = None
         registration.save()
+
+        # Remove Participant membership if any
+        HackathonMember.objects.filter(
+            hackathon=registration.hackathon,
+            user=registration.user,
+            role='Participant'
+        ).delete()
 
         log_activity(
             request.user, 
