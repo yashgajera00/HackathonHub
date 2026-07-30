@@ -12,7 +12,7 @@ class Registration(models.Model):
 
     hackathon = models.ForeignKey(Hackathon, on_delete=models.CASCADE, related_name='registrations')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='registrations')
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Approved')
     registered_at = models.DateTimeField(auto_now_add=True)
     checked_in = models.BooleanField(default=False)
     checked_in_at = models.DateTimeField(blank=True, null=True)

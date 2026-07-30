@@ -50,7 +50,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         return Registration.objects.filter(user=user)
 
     def perform_create(self, serializer):
-        reg = serializer.save(user=self.request.user)
+        reg = serializer.save(user=self.request.user, status='Approved')
         log_activity(
             self.request.user, 
             "Registered for hackathon", 
