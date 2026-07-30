@@ -5,6 +5,7 @@ from hackathons.models import Hackathon
 class HackathonSerializer(serializers.ModelSerializer):
     created_by_username = serializers.ReadOnlyField(source='created_by.username')
     role = serializers.SerializerMethodField(read_only=True) # User's role in this hackathon
+    active_team_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Hackathon
@@ -12,9 +13,10 @@ class HackathonSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'description', 'banner', 'logo',
             'start_date', 'end_date', 'registration_start', 'registration_end',
             'venue', 'city', 'state', 'country', 'max_team_size', 'min_team_size',
-            'status', 'created_by', 'created_by_username', 'created_at', 'updated_at', 'role'
+            'status', 'created_by', 'created_by_username', 'created_at', 'updated_at', 'role',
+            'active_team_status'
         )
-        read_only_fields = ('id', 'slug', 'created_by', 'created_at', 'updated_at', 'role')
+        read_only_fields = ('id', 'slug', 'created_by', 'created_at', 'updated_at', 'role', 'active_team_status')
 
     def get_role(self, obj):
         request = self.context.get('request')
@@ -24,6 +26,15 @@ class HackathonSerializer(serializers.ModelSerializer):
             member = obj.memberships.filter(user=request.user, invitation_status='Accepted').first()
             if member:
                 return member.role
+        return None
+
+    def get_active_team_status(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            from teams.models import TeamMember
+            team_member = TeamMember.objects.filter(hackathon=obj, user=request.user).first()
+            if team_member:
+                return team_member.team.status
         return None
 
     def validate(self, data):

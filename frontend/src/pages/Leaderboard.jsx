@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { Trophy, Award, Crown, User, Star } from 'lucide-react';
 
 export default function Leaderboard() {
-  const { activeHackathon } = useHackathon();
+  const { activeHackathon, activeHackathonRole } = useHackathon();
   const { showToast } = useToast();
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  if (activeHackathon && activeHackathonRole === 'Participant' && activeHackathon?.active_team_status !== 'Approved') {
+    return <Navigate to="/my-team" replace />;
+  }
 
   useEffect(() => {
     if (activeHackathon) {

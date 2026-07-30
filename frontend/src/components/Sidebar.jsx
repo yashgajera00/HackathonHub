@@ -53,14 +53,18 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
           Hackathon Menu
         </div>
-        <NavLink to="/" end className={navLinkClass}>
-          <Calendar size={18} />
-          <span>Details & Schedule</span>
-        </NavLink>
-        <NavLink to="/announcements" className={navLinkClass}>
-          <Megaphone size={18} />
-          <span>Announcements</span>
-        </NavLink>
+        {(activeHackathonRole !== 'Participant' || activeHackathon?.active_team_status === 'Approved') && (
+          <>
+            <NavLink to="/" end className={navLinkClass}>
+              <Calendar size={18} />
+              <span>Details & Schedule</span>
+            </NavLink>
+            <NavLink to="/announcements" className={navLinkClass}>
+              <Megaphone size={18} />
+              <span>Announcements</span>
+            </NavLink>
+          </>
+        )}
 
         {/* Organizer Options */}
         {activeHackathonRole === 'Organizer' && (
@@ -152,10 +156,12 @@ export default function Sidebar({ isOpen, onClose }) {
               <Users size={18} />
               <span>My Team</span>
             </NavLink>
-            <NavLink to="/leaderboard" className={navLinkClass}>
-              <Trophy size={18} />
-              <span>Leaderboard</span>
-            </NavLink>
+            {activeHackathon?.active_team_status === 'Approved' && (
+              <NavLink to="/leaderboard" className={navLinkClass}>
+                <Trophy size={18} />
+                <span>Leaderboard</span>
+              </NavLink>
+            )}
           </>
         )}
       </div>

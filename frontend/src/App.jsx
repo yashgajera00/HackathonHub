@@ -111,7 +111,12 @@ const HackathonJudgeRoute = () => {
 // Active Hackathon Main Entry Route switching
 // If hackathon is active, render HackathonDetails home page, else render general hackathons catalog list
 const HackathonHomeRouter = () => {
-  const { activeHackathonId } = useHackathon();
+  const { activeHackathonId, activeHackathon, activeHackathonRole } = useHackathon();
+  
+  if (activeHackathonId && activeHackathonRole === 'Participant' && activeHackathon?.active_team_status !== 'Approved') {
+    return <Navigate to="/my-team" replace />;
+  }
+  
   return activeHackathonId ? <HackathonDetails /> : <HackathonsList />;
 };
 
