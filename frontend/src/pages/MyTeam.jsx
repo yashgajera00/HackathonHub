@@ -292,15 +292,6 @@ export default function MyTeam() {
               <h2 className="text-xl font-bold text-gray-900 truncate">{team.name}</h2>
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active Team</span>
             </div>
-            {(team.status === 'Pending' || team.status === 'Rejected') && (
-              <button
-                onClick={handleLeaveTeam}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                title="Leave Team"
-              >
-                <LogOut size={16} />
-              </button>
-            )}
           </div>
 
           <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
