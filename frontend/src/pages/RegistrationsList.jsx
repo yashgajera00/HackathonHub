@@ -36,7 +36,21 @@ export default function RegistrationsList() {
       const response = await api.get('/registrations/', {
         params: { hackathon_id: activeHackathon.id }
       });
-      setRegistrations(response.data.results || response.data);
+      const newData = response.data.results || response.data;
+      
+      setRegistrations(prev => {
+        if (prev.length !== newData.length) return newData;
+        
+        const hasChanged = prev.some((item, index) => {
+          const newItem = newData[index];
+          return !newItem || 
+                 item.id !== newItem.id || 
+                 item.status !== newItem.status || 
+                 item.checked_in !== newItem.checked_in;
+        });
+        
+        return hasChanged ? newData : prev;
+      });
     } catch (e) {
       console.error(e);
       if (!silent) showToast('Failed to load registrations.', 'error');
