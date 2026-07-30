@@ -73,8 +73,8 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         Approve registration & automatically add as Participant in HackathonMember
         """
         registration = self.get_object()
-        if registration.status != 'Pending':
-            return Response({"detail": "Registration is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+        if registration.status not in ['Pending', 'Rejected']:
+            return Response({"detail": "Registration must be pending or rejected to approve."}, status=status.HTTP_400_BAD_REQUEST)
 
         registration.status = 'Approved'
         registration.save()

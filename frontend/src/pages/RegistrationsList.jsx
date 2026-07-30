@@ -3,6 +3,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import { Search, UserCheck, UserX, Check, Scan, SearchIcon, SlidersHorizontal } from 'lucide-react';
+import Modal from '../components/Modal';
 
 export default function RegistrationsList() {
   const { activeHackathon, activeHackathonRole } = useHackathon();
@@ -10,6 +11,7 @@ export default function RegistrationsList() {
 
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [rejectingId, setRejectingId] = useState(null);
   
   // Filters
   const [search, setSearch] = useState('');
@@ -54,15 +56,21 @@ export default function RegistrationsList() {
     }
   };
 
-  const handleReject = async (id) => {
-    if (!window.confirm('Are you sure you want to reject this registration?')) return;
+  const handleReject = (id) => {
+    setRejectingId(id);
+  };
+
+  const confirmReject = async () => {
+    if (!rejectingId) return;
     try {
-      await api.post(`/registrations/${id}/reject/`);
+      await api.post(`/registrations/${rejectingId}/reject/`);
       showToast('Registration rejected.', 'success');
       fetchRegistrations();
     } catch (err) {
       console.error(err);
       showToast('Failed to reject registration.', 'error');
+    } finally {
+      setRejectingId(null);
     }
   };
 
@@ -212,7 +220,7 @@ export default function RegistrationsList() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end space-x-2">
                             {/* Organizer Registration Approvals */}
-                            {isOrganizer && r.status === 'Pending' && (
+                            {isOrganizer && (r.status === 'Pending' || r.status === 'Rejected') && (
                               <>
                                 <button
                                   onClick={() => handleApprove(r.id)}
@@ -221,13 +229,15 @@ export default function RegistrationsList() {
                                 >
                                   Approve
                                 </button>
-                                <button
-                                  onClick={() => handleReject(r.id)}
-                                  className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-100 rounded-lg transition"
-                                  title="Reject registration"
-                                >
-                                  Reject
-                                </button>
+                                {r.status === 'Pending' && (
+                                  <button
+                                    onClick={() => handleReject(r.id)}
+                                    className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-100 rounded-lg transition"
+                                    title="Reject registration"
+                                  >
+                                    Reject
+                                  </button>
+                                )}
                               </>
                             )}
 
@@ -260,6 +270,32 @@ export default function RegistrationsList() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={rejectingId !== null}
+        onClose={() => setRejectingId(null)}
+        title="Confirm Rejection"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 text-sm">
+            Are you sure you want to reject this registration? This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-2 pt-2">
+            <button
+              onClick={() => setRejectingId(null)}
+              className="px-4 py-2 border border-gray-200 text-gray-700 font-semibold rounded-xl text-xs hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmReject}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition"
+            >
+              Reject Registration
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
