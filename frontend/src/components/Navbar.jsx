@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHackathon } from '../context/HackathonContext';
 import api from '../services/api';
@@ -13,6 +13,31 @@ export default function Navbar({ onToggleSidebar }) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const navigate = useNavigate();
+
+  // Refs for click-outside detection
+  const hackathonDropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        hackathonDropdownRef.current &&
+        !hackathonDropdownRef.current.contains(event.target)
+      ) {
+        setShowDropdown(false);
+      }
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target)
+      ) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -79,9 +104,9 @@ export default function Navbar({ onToggleSidebar }) {
 
         {/* Hackathon Selector (Role Switching) */}
         {user && (
-          <div className="relative">
+          <div className="relative" ref={hackathonDropdownRef}>
             <button
-              onClick={() => setShowDropdown(!showDropdown)}
+              onClick={() => { setShowDropdown(!showDropdown); setShowProfileDropdown(false); }}
               className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200/60 rounded-lg text-sm text-gray-700 transition max-w-[140px] sm:max-w-[220px]"
             >
               <LayoutGrid size={15} className="text-gray-500 flex-shrink-0" />
@@ -143,9 +168,9 @@ export default function Navbar({ onToggleSidebar }) {
           </Link>
 
           {/* User Profile Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={profileDropdownRef}>
             <button
-              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              onClick={() => { setShowProfileDropdown(!showProfileDropdown); setShowDropdown(false); }}
               className="flex items-center space-x-2 focus:outline-none"
             >
               {user.avatar ? (
