@@ -41,10 +41,9 @@ export default function RegistrationsList() {
       setRegistrations(prev => {
         if (prev.length !== newData.length) return newData;
         
-        const hasChanged = prev.some((item, index) => {
-          const newItem = newData[index];
+        const hasChanged = prev.some(item => {
+          const newItem = newData.find(n => n.id === item.id);
           return !newItem || 
-                 item.id !== newItem.id || 
                  item.status !== newItem.status || 
                  item.checked_in !== newItem.checked_in;
         });

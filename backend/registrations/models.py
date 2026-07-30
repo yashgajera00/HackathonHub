@@ -19,6 +19,7 @@ class Registration(models.Model):
     qr_code_uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     class Meta:
+        ordering = ['-registered_at', '-id']
         constraints = [
             models.UniqueConstraint(fields=['hackathon', 'user'], name='unique_hackathon_user_registration')
         ]
