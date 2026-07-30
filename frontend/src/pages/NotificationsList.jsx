@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../context/ToastContext';
 import { useHackathon } from '../context/HackathonContext';
 import api from '../services/api';
-import { Bell, Check, X, Clock, Eye, Trash } from 'lucide-react';
+import { Bell, Check, Clock } from 'lucide-react';
 
 export default function NotificationsList() {
   const { showToast } = useToast();
@@ -11,6 +11,49 @@ export default function NotificationsList() {
   const [notifications, setNotifications] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchAlerts = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoading(true);
+      const response = await api.get('/notifications/');
+      const newData = response.data.results || response.data;
+      
+      setNotifications(prev => {
+        if (prev.length !== newData.length) return newData;
+        
+        const hasChanged = prev.some(item => {
+          const newItem = newData.find(n => n.id === item.id);
+          return !newItem || item.read !== newItem.read;
+        });
+        
+        return hasChanged ? newData : prev;
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
+  const fetchInvitations = useCallback(async () => {
+    try {
+      const response = await api.get('/memberships/my_invitations/');
+      const newData = response.data.results || response.data;
+      
+      setInvitations(prev => {
+        if (prev.length !== newData.length) return newData;
+        
+        const hasChanged = prev.some(item => {
+          const newItem = newData.find(n => n.id === item.id);
+          return !newItem || item.role !== newItem.role;
+        });
+        
+        return hasChanged ? newData : prev;
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAlerts(false);
@@ -22,71 +65,49 @@ export default function NotificationsList() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchAlerts, fetchInvitations]);
 
-  const fetchAlerts = async (silent = false) => {
-    try {
-      if (!silent) setLoading(true);
-      const response = await api.get('/notifications/');
-      setNotifications(response.data.results || response.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  };
-
-  const fetchInvitations = async () => {
-    try {
-      const response = await api.get('/memberships/my_invitations/');
-      setInvitations(response.data.results || response.data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleMarkAllRead = async () => {
+  const handleMarkAllRead = useCallback(async () => {
     try {
       await api.post('/notifications/mark_all_as_read/');
       showToast('All notifications marked as read.', 'success');
-      fetchAlerts();
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (e) {
       showToast('Failed to mark read.', 'error');
     }
-  };
+  }, [showToast]);
 
-  const handleMarkRead = async (id) => {
+  const handleMarkRead = useCallback(async (id) => {
     try {
       await api.post(`/notifications/${id}/mark_as_read/`);
-      fetchAlerts();
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const handleAcceptInvite = async (id) => {
+  const handleAcceptInvite = useCallback(async (id) => {
     try {
       const response = await api.post(`/memberships/${id}/accept_invitation/`);
       showToast(`Accepted invitation to join ${response.data.hackathon_details.title}!`, 'success');
-      fetchInvitations();
-      // Select the hackathon automatically
+      setInvitations(prev => prev.filter(invite => invite.id !== id));
       selectHackathon(response.data.hackathon);
     } catch (err) {
       console.error(err);
       showToast('Failed to accept invitation.', 'error');
     }
-  };
+  }, [showToast, selectHackathon]);
 
-  const handleRejectInvite = async (id) => {
+  const handleRejectInvite = useCallback(async (id) => {
     try {
       await api.post(`/memberships/${id}/reject_invitation/`);
       showToast('Invitation declined.', 'success');
-      fetchInvitations();
+      setInvitations(prev => prev.filter(invite => invite.id !== id));
     } catch (err) {
       console.error(err);
       showToast('Failed to decline invitation.', 'error');
     }
-  };
+  }, [showToast]);
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 grid grid-cols-1 gap-8">
@@ -151,33 +172,11 @@ export default function NotificationsList() {
         ) : notifications.length > 0 ? (
           <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-xs divide-y divide-gray-50">
             {notifications.map((n) => (
-              <div 
-                key={n.id} 
-                className={`p-5 flex items-start justify-between space-x-4 transition hover:bg-gray-50/20 ${!n.read ? 'bg-blue-50/20' : ''}`}
-              >
-                <div className="flex items-start space-x-3.5">
-                  <span className={`p-2 rounded-xl flex-shrink-0 mt-0.5 ${!n.read ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
-                    <Bell size={16} />
-                  </span>
-                  <div>
-                    <h4 className={`text-sm font-bold text-gray-800 ${!n.read ? 'text-gray-900 font-extrabold' : ''}`}>{n.title}</h4>
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{n.message}</p>
-                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-2 inline-block">
-                      {new Date(n.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                {!n.read && (
-                  <button
-                    onClick={() => handleMarkRead(n.id)}
-                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex-shrink-0"
-                    title="Mark as read"
-                  >
-                    <Check size={14} className="stroke-[3]" />
-                  </button>
-                )}
-              </div>
+              <NotificationRow
+                key={n.id}
+                n={n}
+                onMarkRead={handleMarkRead}
+              />
             ))}
           </div>
         ) : (
@@ -189,3 +188,34 @@ export default function NotificationsList() {
     </div>
   );
 }
+
+const NotificationRow = React.memo(({ n, onMarkRead }) => {
+  return (
+    <div 
+      className={`p-5 flex items-start justify-between space-x-4 transition hover:bg-gray-50/20 ${!n.read ? 'bg-blue-50/20' : ''}`}
+    >
+      <div className="flex items-start space-x-3.5">
+        <span className={`p-2 rounded-xl flex-shrink-0 mt-0.5 ${!n.read ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
+          <Bell size={16} />
+        </span>
+        <div>
+          <h4 className={`text-sm font-bold text-gray-800 ${!n.read ? 'text-gray-900 font-extrabold' : ''}`}>{n.title}</h4>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">{n.message}</p>
+          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-2 inline-block">
+            {new Date(n.created_at).toLocaleString()}
+          </span>
+        </div>
+      </div>
+
+      {!n.read && (
+        <button
+          onClick={() => onMarkRead(n.id)}
+          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex-shrink-0"
+          title="Mark as read"
+        >
+          <Check size={14} className="stroke-[3]" />
+        </button>
+      )}
+    </div>
+  );
+});
