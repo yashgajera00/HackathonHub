@@ -28,6 +28,9 @@ export default function MyTeam() {
   });
   const [savingProject, setSavingProject] = useState(false);
   const [submittingTeam, setSubmittingTeam] = useState(false);
+  const [joinTeamName, setJoinTeamName] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinRequests, setJoinRequests] = useState([]);
 
   useEffect(() => {
     if (activeHackathon) {
@@ -50,8 +53,14 @@ export default function MyTeam() {
           project_description: teamObj.project_description || '',
           project_submission_link: teamObj.project_submission_link || ''
         });
+        if (teamObj.is_leader) {
+          fetchJoinRequests();
+        } else {
+          setJoinRequests([]);
+        }
       } else {
         setTeam(null);
+        setJoinRequests([]);
         // If not in team, fetch pending team invitations sent to this user
         fetchPendingInvitations();
       }
@@ -69,6 +78,74 @@ export default function MyTeam() {
       setPendingInvites(response.data.results || response.data);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const fetchJoinRequests = async () => {
+    try {
+      const response = await api.get('/team-join-requests/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      const allReqs = response.data.results || response.data;
+      setJoinRequests(allReqs.filter(r => r.status === 'Pending'));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRequestJoin = async (e) => {
+    e.preventDefault();
+    if (!joinTeamName) return;
+    setJoining(true);
+    try {
+      await api.post('/teams/request_join/', {
+        team_name: joinTeamName,
+        hackathon_id: activeHackathon.id
+      });
+      showToast(`Join request sent to the leader of team '${joinTeamName}'!`, 'success');
+      setJoinTeamName('');
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to send join request.', 'error');
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const handleAcceptRequest = async (requestId, requesterName) => {
+    try {
+      await api.post(`/team-join-requests/${requestId}/accept/`);
+      showToast(`Accepted ${requesterName} into the team!`, 'success');
+      fetchMyTeamState();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to accept member.', 'error');
+    }
+  };
+
+  const handleRejectRequest = async (requestId, requesterName) => {
+    try {
+      await api.post(`/team-join-requests/${requestId}/reject/`);
+      showToast(`Declined ${requesterName}'s request.`, 'success');
+      setJoinRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to decline request.', 'error');
+    }
+  };
+
+  const handleDeleteTeam = async () => {
+    if (!window.confirm('Are you sure you want to delete this team? This action is permanent and will remove all members.')) {
+      return;
+    }
+    try {
+      await api.delete(`/teams/${team.id}/`);
+      showToast('Team deleted successfully.', 'success');
+      setTeam(null);
+      fetchMyTeamState();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to delete team.', 'error');
     }
   };
 
@@ -205,35 +282,67 @@ export default function MyTeam() {
   // Not in a team
   if (!team) {
     return (
-      <div className="max-w-2xl mx-auto py-8 px-4 space-y-8">
-        {/* Create Form */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-xs space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold font-display text-gray-900">Form a Team</h2>
-            <p className="text-sm text-gray-500 mt-1">To submit a project or invite peers, create a unique team register.</p>
+      <div className="max-w-4xl mx-auto py-8 px-4 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Create Form */}
+          <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-xs space-y-6 flex flex-col justify-between">
+            <div>
+              <h2 className="text-xl font-bold font-display text-gray-900">Form a Team</h2>
+              <p className="text-xs text-gray-500 mt-1">To invite peers and participate, create a unique team.</p>
+            </div>
+
+            <form onSubmit={handleCreateTeam} className="space-y-4 text-xs font-semibold text-gray-400">
+              <div>
+                <label className="block uppercase tracking-wider mb-2">Team Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
+                  placeholder="Ex: CyberPunks"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={creating}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition disabled:opacity-50 flex items-center justify-center space-x-1.5"
+              >
+                {creating && <RefreshCw size={14} className="animate-spin" />}
+                <span>Create Team</span>
+              </button>
+            </form>
           </div>
 
-          <form onSubmit={handleCreateTeam} className="flex space-x-3 items-end text-xs font-semibold text-gray-400">
-            <div className="flex-grow">
-              <label className="block uppercase tracking-wider mb-2">Team Name</label>
-              <input
-                type="text"
-                required
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
-                placeholder="Ex: CyberPunks"
-              />
+          {/* Join Form */}
+          <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-xs space-y-6 flex flex-col justify-between">
+            <div>
+              <h2 className="text-xl font-bold font-display text-gray-900">Join a Team</h2>
+              <p className="text-xs text-gray-500 mt-1">Enter a team name to send a join request to the leader.</p>
             </div>
-            <button
-              type="submit"
-              disabled={creating}
-              className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition disabled:opacity-50 flex items-center space-x-1.5"
-            >
-              {creating && <RefreshCw size={14} className="animate-spin" />}
-              <span>Create Team</span>
-            </button>
-          </form>
+
+            <form onSubmit={handleRequestJoin} className="space-y-4 text-xs font-semibold text-gray-400">
+              <div>
+                <label className="block uppercase tracking-wider mb-2">Team Name</label>
+                <input
+                  type="text"
+                  required
+                  value={joinTeamName}
+                  onChange={(e) => setJoinTeamName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
+                  placeholder="Ex: CyberPunks"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={joining}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition disabled:opacity-50 flex items-center justify-center space-x-1.5"
+              >
+                {joining && <RefreshCw size={14} className="animate-spin" />}
+                <span>Request to Join</span>
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* Pending Invites */}
@@ -291,6 +400,15 @@ export default function MyTeam() {
             <h2 className="text-xl font-bold text-gray-900 truncate">{team.name}</h2>
             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active Team</span>
           </div>
+          {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
+            <button
+              onClick={handleDeleteTeam}
+              className="p-1.5 text-gray-400 hover:text-red-650 hover:bg-red-50 rounded-lg transition"
+              title="Delete Team"
+            >
+              <Trash size={16} />
+            </button>
+          )}
         </div>
 
         <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
@@ -344,6 +462,39 @@ export default function MyTeam() {
           </div>
         </div>
       </div>
+
+      {/* Incoming Join Requests (Leader only) */}
+      {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && joinRequests.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-gray-900">Incoming Join Requests</h3>
+          <div className="space-y-3">
+            {joinRequests.map((req) => {
+              const name = `${req.requester_details.first_name || ''} ${req.requester_details.last_name || ''}`.trim() || req.requester_details.username;
+              return (
+                <div key={req.id} className="flex items-center justify-between text-xs font-semibold p-2 bg-gray-50 rounded-xl border border-gray-100 animate-fade-in">
+                  <span className="text-gray-800 truncate max-w-[150px]">{name}</span>
+                  <div className="flex space-x-1.5">
+                    <button
+                      onClick={() => handleAcceptRequest(req.id, name)}
+                      className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition"
+                      title="Accept"
+                    >
+                      <Check size={14} className="stroke-[3]" />
+                    </button>
+                    <button
+                      onClick={() => handleRejectRequest(req.id, name)}
+                      className="p-1 text-red-650 hover:bg-red-50 rounded transition"
+                      title="Decline"
+                    >
+                      <X size={14} className="stroke-[3]" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Invite Peer Form (Leader only) */}
       {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (

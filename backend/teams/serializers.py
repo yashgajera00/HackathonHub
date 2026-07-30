@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.conf import settings
 from users.models import CustomUser
 from hackathons.models import Hackathon
-from teams.models import Team, TeamMember, TeamInvitation
+from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest
 from memberships.serializers import UserMinSerializer
 
 class TeamMemberSerializer(serializers.ModelSerializer):
@@ -87,4 +87,13 @@ class TeamInvitationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"invitee_username": "An invitation to this user is already pending."})
 
         return data
+
+class TeamJoinRequestSerializer(serializers.ModelSerializer):
+    requester_details = UserMinSerializer(source='requester', read_only=True)
+    team_name = serializers.ReadOnlyField(source='team.name')
+
+    class Meta:
+        model = TeamJoinRequest
+        fields = ('id', 'team', 'team_name', 'requester', 'requester_details', 'status', 'created_at')
+        read_only_fields = ('id', 'requester', 'status', 'created_at')
 

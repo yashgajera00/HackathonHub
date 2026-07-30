@@ -26,7 +26,7 @@ from users.views import CustomUserViewSet
 from hackathons.views import HackathonViewSet
 from memberships.views import HackathonMemberViewSet
 from registrations.views import RegistrationViewSet
-from teams.views import TeamViewSet, TeamInvitationViewSet
+from teams.views import TeamViewSet, TeamInvitationViewSet, TeamJoinRequestViewSet
 from announcements.views import AnnouncementViewSet, RuleViewSet, ScheduleItemViewSet
 from leaderboard.views import ScoreViewSet, LeaderboardViewSet
 from notifications.views import NotificationViewSet
@@ -39,6 +39,7 @@ router.register(r'memberships', HackathonMemberViewSet, basename='membership')
 router.register(r'registrations', RegistrationViewSet, basename='registration')
 router.register(r'teams', TeamViewSet, basename='team')
 router.register(r'team-invitations', TeamInvitationViewSet, basename='teaminvitation')
+router.register(r'team-join-requests', TeamJoinRequestViewSet, basename='teamjoinrequest')
 router.register(r'announcements', AnnouncementViewSet, basename='announcement')
 router.register(r'rules', RuleViewSet, basename='rule')
 router.register(r'schedules', ScheduleItemViewSet, basename='schedule')

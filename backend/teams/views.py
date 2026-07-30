@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Count
 from hackathons.models import Hackathon
-from teams.models import Team, TeamMember, TeamInvitation
-from teams.serializers import TeamSerializer, TeamInvitationSerializer
+from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest
+from teams.serializers import TeamSerializer, TeamInvitationSerializer, TeamJoinRequestSerializer
 from memberships.models import HackathonMember
 from notifications.models import Notification
 from common.permissions import IsHackathonOrganizer, IsHackathonParticipant
@@ -15,6 +15,24 @@ from dashboard.models import log_activity
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all().order_by('-created_at')
     serializer_class = TeamSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.created_by != request.user and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can delete the team."}, status=status.HTTP_403_FORBIDDEN)
+        if instance.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot delete team after submission or approval."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Log activity
+        log_activity(
+            request.user,
+            "Deleted team",
+            hackathon=instance.hackathon,
+            details=f"Deleted team: {instance.name}"
+        )
+        
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_permissions(self):
         if self.action in ['create', 'leave', 'submit_project']:
@@ -432,5 +450,166 @@ class TeamInvitationViewSet(viewsets.ModelViewSet):
         )
 
         return Response(TeamInvitationSerializer(invitation).data)
+
+    @action(detail=False, methods=['post'])
+    def request_join(self, request):
+        """
+        Participant requests to join a team by team name (case-insensitive)
+        """
+        team_name = request.data.get('team_name')
+        hackathon_id = request.data.get('hackathon_id') or request.headers.get('X-Hackathon-Id')
+        
+        if not team_name:
+            return Response({"detail": "team_name is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not hackathon_id:
+            return Response({"detail": "Hackathon ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Look up team by name and hackathon
+        team = Team.objects.filter(hackathon_id=hackathon_id, name__iexact=team_name).first()
+        if not team:
+            return Response({"detail": f"Team with name '{team_name}' does not exist in this hackathon."}, status=status.HTTP_404_NOT_FOUND)
+
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot request to join a submitted or approved team."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check capacity
+        max_size = team.hackathon.max_team_size
+        if team.members.count() >= max_size:
+            return Response({"detail": "This team is already full."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify requester is registered and NOT in any other team
+        if TeamMember.objects.filter(hackathon_id=hackathon_id, user=request.user).exists():
+            return Response({"detail": "You are already a member of a team in this hackathon."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if already requested
+        if TeamJoinRequest.objects.filter(team=team, requester=request.user, status='Pending').exists():
+            return Response({"detail": "Join request to this team is already pending."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create join request
+        join_req = TeamJoinRequest.objects.create(
+            team=team,
+            requester=request.user,
+            status='Pending'
+        )
+
+        # Notify team leader
+        Notification.objects.create(
+            user=team.created_by,
+            title="New Team Join Request",
+            message=f"{request.user.username} has requested to join your team '{team.name}'."
+        )
+
+        return Response(TeamJoinRequestSerializer(join_req).data, status=status.HTTP_201_CREATED)
+
 from django.db.models import Q
+
+class TeamJoinRequestViewSet(viewsets.ModelViewSet):
+    queryset = TeamJoinRequest.objects.all().order_by('-created_at')
+    serializer_class = TeamJoinRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        hackathon_id = self.request.query_params.get('hackathon_id') or self.request.headers.get('X-Hackathon-Id')
+        
+        # Leaders see incoming requests for their team; requesters see their sent requests
+        qs = TeamJoinRequest.objects.filter(
+            Q(requester=user) | Q(team__created_by=user)
+        ).distinct()
+
+        if hackathon_id:
+            qs = qs.filter(team__hackathon_id=hackathon_id)
+
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        join_req = self.get_object()
+        team = join_req.team
+
+        # Verify requester is the team leader
+        if team.created_by != request.user and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can accept join requests."}, status=status.HTTP_403_FORBIDDEN)
+
+        if join_req.status != 'Pending':
+            return Response({"detail": "Request is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot accept members to a submitted or approved team."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check capacity
+        max_size = team.hackathon.max_team_size
+        if team.members.count() >= max_size:
+            return Response({"detail": "This team has reached its maximum size limit."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify user is not already in a team
+        if TeamMember.objects.filter(hackathon=team.hackathon, user=join_req.requester).exists():
+            join_req.status = 'Rejected'
+            join_req.save()
+            return Response({"detail": "User is already a member of a team in this hackathon."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            join_req.status = 'Accepted'
+            join_req.save()
+
+            # Create team member
+            TeamMember.objects.create(
+                team=team,
+                user=join_req.requester,
+                role='Member',
+                hackathon=team.hackathon
+            )
+
+            # Reject/Cancel all other pending requests and invitations for this user in this hackathon
+            TeamInvitation.objects.filter(
+                invitee=join_req.requester,
+                team__hackathon=team.hackathon,
+                status='Pending'
+            ).update(status='Rejected')
+
+            TeamJoinRequest.objects.filter(
+                requester=join_req.requester,
+                team__hackathon=team.hackathon,
+                status='Pending'
+            ).exclude(pk=join_req.pk).update(status='Rejected')
+
+            log_activity(
+                request.user,
+                "Accepted team join request",
+                hackathon=team.hackathon,
+                details=f"Accepted join request from {join_req.requester.username} for team {team.name}"
+            )
+
+            # Notify requester
+            Notification.objects.create(
+                user=join_req.requester,
+                title="Join Request Accepted",
+                message=f"Your request to join team '{team.name}' has been accepted!"
+            )
+
+        return Response(TeamJoinRequestSerializer(join_req).data)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        join_req = self.get_object()
+        team = join_req.team
+
+        # Verify requester is the team leader
+        if team.created_by != request.user and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can reject join requests."}, status=status.HTTP_403_FORBIDDEN)
+
+        if join_req.status != 'Pending':
+            return Response({"detail": "Request is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+
+        join_req.status = 'Rejected'
+        join_req.save()
+
+        # Notify requester
+        Notification.objects.create(
+            user=join_req.requester,
+            title="Join Request Declined",
+            message=f"Your request to join team '{team.name}' was declined by the leader."
+        )
+
+        return Response(TeamJoinRequestSerializer(join_req).data)
 

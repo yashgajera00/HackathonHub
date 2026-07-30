@@ -69,3 +69,23 @@ class TeamInvitation(models.Model):
     def __str__(self):
         return f"Invite: {self.team.name} to {self.invitee.username} ({self.status})"
 
+class TeamJoinRequest(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Accepted', 'Accepted'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='join_requests')
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='team_join_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['team', 'requester'], name='unique_team_join_request')
+        ]
+
+    def __str__(self):
+        return f"Join Request: {self.requester.username} to {self.team.name} ({self.status})"
+
