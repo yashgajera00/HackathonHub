@@ -43,6 +43,13 @@ export default function Navbar({ onToggleSidebar }) {
     if (user) {
       fetchUserHackathons();
       fetchNotificationsCount();
+      
+      const interval = setInterval(() => {
+        fetchUserHackathons();
+        fetchNotificationsCount();
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [user, activeHackathonId]);
 

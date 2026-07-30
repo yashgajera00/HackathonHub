@@ -13,19 +13,26 @@ export default function NotificationsList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAlerts();
+    fetchAlerts(false);
     fetchInvitations();
+
+    const interval = setInterval(() => {
+      fetchAlerts(true);
+      fetchInvitations();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await api.get('/notifications/');
       setNotifications(response.data.results || response.data);
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

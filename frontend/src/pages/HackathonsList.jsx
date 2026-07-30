@@ -28,13 +28,20 @@ export default function HackathonsList() {
   const [regs, setRegs] = useState({});
 
   useEffect(() => {
-    fetchHackathons();
+    fetchHackathons(false);
     fetchUserRegistrations();
+
+    const interval = setInterval(() => {
+      fetchHackathons(true);
+      fetchUserRegistrations();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [search, statusFilter, ordering, page]);
 
-  const fetchHackathons = async () => {
+  const fetchHackathons = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params = {
         search,
         page,
@@ -54,9 +61,9 @@ export default function HackathonsList() {
       }
     } catch (e) {
       console.error(e);
-      showToast('Failed to load hackathons.', 'error');
+      if (!silent) showToast('Failed to load hackathons.', 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

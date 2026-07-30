@@ -16,22 +16,28 @@ export default function AnnouncementsList() {
 
   useEffect(() => {
     if (activeHackathon) {
-      fetchAnnouncements();
+      fetchAnnouncements(false);
+      
+      const interval = setInterval(() => {
+        fetchAnnouncements(true);
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [activeHackathon]);
 
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await api.get('/announcements/', {
         params: { hackathon_id: activeHackathon.id }
       });
       setAnnouncements(response.data.results || response.data);
     } catch (e) {
       console.error(e);
-      showToast('Failed to load announcements.', 'error');
+      if (!silent) showToast('Failed to load announcements.', 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

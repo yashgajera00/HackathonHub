@@ -18,22 +18,28 @@ export default function RegistrationsList() {
 
   useEffect(() => {
     if (activeHackathon) {
-      fetchRegistrations();
+      fetchRegistrations(false);
+      
+      const interval = setInterval(() => {
+        fetchRegistrations(true);
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [activeHackathon, statusFilter, checkinFilter]);
 
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await api.get('/registrations/', {
         params: { hackathon_id: activeHackathon.id }
       });
       setRegistrations(response.data.results || response.data);
     } catch (e) {
       console.error(e);
-      showToast('Failed to load registrations.', 'error');
+      if (!silent) showToast('Failed to load registrations.', 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

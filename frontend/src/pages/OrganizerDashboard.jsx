@@ -13,22 +13,28 @@ export default function OrganizerDashboard() {
 
   useEffect(() => {
     if (activeHackathon) {
-      fetchAnalytics();
+      fetchAnalytics(false);
+      
+      const interval = setInterval(() => {
+        fetchAnalytics(true);
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [activeHackathon]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await api.get('/dashboard-analytics/organizer/', {
         params: { hackathon_id: activeHackathon.id }
       });
       setData(response.data);
     } catch (e) {
       console.error(e);
-      showToast('Failed to load organizer analytics.', 'error');
+      if (!silent) showToast('Failed to load organizer analytics.', 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

@@ -43,18 +43,29 @@ export default function HackathonDetails() {
 
   useEffect(() => {
     if (activeHackathon) {
-      fetchSchedule();
-      fetchRules();
-      fetchUserRegistration();
+      fetchSchedule(false);
+      fetchRules(false);
+      fetchUserRegistration(false);
       if (activeHackathonRole === 'Participant') {
-        fetchCertificate();
+        fetchCertificate(false);
       }
+
+      const interval = setInterval(() => {
+        fetchSchedule(true);
+        fetchRules(true);
+        fetchUserRegistration(true);
+        if (activeHackathonRole === 'Participant') {
+          fetchCertificate(true);
+        }
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
   }, [activeHackathon, activeHackathonRole]);
 
-  const fetchUserRegistration = async () => {
+  const fetchUserRegistration = async (silent = false) => {
     try {
-      setLoadingRegistration(true);
+      if (!silent) setLoadingRegistration(true);
       const response = await api.get('/registrations/', {
         params: { hackathon_id: activeHackathon.id }
       });
@@ -68,13 +79,13 @@ export default function HackathonDetails() {
       console.error("Failed to fetch user registration", e);
       setUserRegistration(null);
     } finally {
-      setLoadingRegistration(false);
+      if (!silent) setLoadingRegistration(false);
     }
   };
 
-  const fetchSchedule = async () => {
+  const fetchSchedule = async (silent = false) => {
     try {
-      setLoadingSchedule(true);
+      if (!silent) setLoadingSchedule(true);
       const response = await api.get('/schedules/', {
         params: { hackathon_id: activeHackathon.id }
       });
@@ -82,13 +93,13 @@ export default function HackathonDetails() {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoadingSchedule(false);
+      if (!silent) setLoadingSchedule(false);
     }
   };
 
-  const fetchRules = async () => {
+  const fetchRules = async (silent = false) => {
     try {
-      setLoadingRules(true);
+      if (!silent) setLoadingRules(true);
       const response = await api.get('/rules/', {
         params: { hackathon_id: activeHackathon.id }
       });
@@ -96,13 +107,13 @@ export default function HackathonDetails() {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoadingRules(false);
+      if (!silent) setLoadingRules(false);
     }
   };
 
-  const fetchCertificate = async () => {
+  const fetchCertificate = async (silent = false) => {
     try {
-      setLoadingCert(true);
+      if (!silent) setLoadingCert(true);
       // Fetch registrations for current user & hackathon
       const regsResponse = await api.get('/registrations/', {
         params: { hackathon_id: activeHackathon.id }
@@ -118,7 +129,7 @@ export default function HackathonDetails() {
       console.log("No certificate ready yet or registration pending.");
       setCert(null);
     } finally {
-      setLoadingCert(false);
+      if (!silent) setLoadingCert(false);
     }
   };
 
