@@ -39,16 +39,26 @@ export default function RegistrationsList() {
       const newData = response.data.results || response.data;
       
       setRegistrations(prev => {
-        if (prev.length !== newData.length) return newData;
-        
-        const hasChanged = prev.some(item => {
+        let changed = false;
+        const updated = prev.map(item => {
           const newItem = newData.find(n => n.id === item.id);
-          return !newItem || 
-                 item.status !== newItem.status || 
-                 item.checked_in !== newItem.checked_in;
+          if (!newItem) return item;
+          
+          const isItemChanged = item.status !== newItem.status || 
+                                item.checked_in !== newItem.checked_in;
+          
+          if (isItemChanged) {
+            changed = true;
+            return newItem;
+          }
+          return item;
         });
+
+        if (newData.length !== prev.length) {
+          return newData;
+        }
         
-        return hasChanged ? newData : prev;
+        return changed ? updated : prev;
       });
     } catch (e) {
       console.error(e);
@@ -60,10 +70,10 @@ export default function RegistrationsList() {
 
   const handleApprove = useCallback(async (id) => {
     try {
-      await api.post(`/registrations/${id}/approve/`);
+      const response = await api.post(`/registrations/${id}/approve/`);
       showToast('Registration approved successfully! User is now a participant.', 'success');
       setRegistrations(prev => 
-        prev.map(reg => reg.id === id ? { ...reg, status: 'Approved' } : reg)
+        prev.map(reg => reg.id === id ? response.data : reg)
       );
     } catch (err) {
       console.error(err);
@@ -78,10 +88,10 @@ export default function RegistrationsList() {
   const confirmReject = async () => {
     if (!rejectingId) return;
     try {
-      await api.post(`/registrations/${rejectingId}/reject/`);
+      const response = await api.post(`/registrations/${rejectingId}/reject/`);
       showToast('Registration rejected.', 'success');
       setRegistrations(prev => 
-        prev.map(reg => reg.id === rejectingId ? { ...reg, status: 'Rejected', checked_in: false, checked_in_at: null } : reg)
+        prev.map(reg => reg.id === rejectingId ? response.data : reg)
       );
     } catch (err) {
       console.error(err);
