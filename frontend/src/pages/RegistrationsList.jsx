@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
@@ -58,7 +58,7 @@ export default function RegistrationsList() {
     }
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = useCallback(async (id) => {
     try {
       await api.post(`/registrations/${id}/approve/`);
       showToast('Registration approved successfully! User is now a participant.', 'success');
@@ -69,11 +69,11 @@ export default function RegistrationsList() {
       console.error(err);
       showToast('Failed to approve registration.', 'error');
     }
-  };
+  }, [showToast]);
 
-  const handleReject = (id) => {
+  const handleReject = useCallback((id) => {
     setRejectingId(id);
-  };
+  }, []);
 
   const confirmReject = async () => {
     if (!rejectingId) return;
@@ -194,83 +194,16 @@ export default function RegistrationsList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
-                {filteredRegs.map((r) => {
-                  const userObj = r.user_details || {};
-                  const fullName = `${userObj.first_name || ''} ${userObj.last_name || ''}`.trim() || userObj.username;
-                  
-                  return (
-                    <tr key={r.id} className="hover:bg-gray-50/40 transition">
-                      <td className="px-6 py-4 flex items-center space-x-3">
-                        {userObj.avatar ? (
-                          <img src={userObj.avatar} alt="" className="h-8 w-8 rounded-full object-cover border" />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                            {userObj.username.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">{fullName}</span>
-                          <span className="text-[10px] text-gray-400">{userObj.email} • {userObj.phone}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${
-                          r.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
-                          r.status === 'Pending' ? 'bg-amber-50 text-amber-800 border-amber-100' :
-                          'bg-red-50 text-red-800 border-red-100'
-                        }`}>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-400">
-                        {new Date(r.registered_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        {r.checked_in ? (
-                          <span className="inline-flex items-center text-emerald-600 space-x-1">
-                            <Check size={14} className="stroke-[3]" />
-                            <span>Checked In</span>
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">Not Present</span>
-                        )}
-                      </td>
-                      {hasEditRights && (
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            {/* Organizer Registration Approvals */}
-                            {isOrganizer && (
-                              <>
-                                {(r.status === 'Pending' || r.status === 'Rejected') && (
-                                  <button
-                                    onClick={() => handleApprove(r.id)}
-                                    className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-100 rounded-lg transition"
-                                    title="Approve registration"
-                                  >
-                                    Approve
-                                  </button>
-                                )}
-                                {(r.status === 'Pending' || r.status === 'Approved') && (
-                                  <button
-                                    onClick={() => handleReject(r.id)}
-                                    className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-100 rounded-lg transition"
-                                    title="Reject registration"
-                                  >
-                                    Reject
-                                  </button>
-                                )}
-                              </>
-                            )}
-                            
-                            {r.status === 'Approved' && r.checked_in && (
-                              <span className="text-[10px] text-gray-400 font-bold uppercase">Ready</span>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
+                {filteredRegs.map((r) => (
+                  <RegistrationRow
+                    key={r.id}
+                    r={r}
+                    hasEditRights={hasEditRights}
+                    isOrganizer={isOrganizer}
+                    handleApprove={handleApprove}
+                    handleReject={handleReject}
+                  />
+                ))}
               </tbody>
             </table>
           </div>
@@ -309,3 +242,81 @@ export default function RegistrationsList() {
     </div>
   );
 }
+
+const RegistrationRow = React.memo(({ r, hasEditRights, isOrganizer, handleApprove, handleReject }) => {
+  const userObj = r.user_details || {};
+  const fullName = `${userObj.first_name || ''} ${userObj.last_name || ''}`.trim() || userObj.username;
+
+  return (
+    <tr className="hover:bg-gray-50/40 transition">
+      <td className="px-6 py-4 flex items-center space-x-3">
+        {userObj.avatar ? (
+          <img src={userObj.avatar} alt="" className="h-8 w-8 rounded-full object-cover border" />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold">
+            {userObj.username.slice(0, 2).toUpperCase()}
+          </div>
+        )}
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900">{fullName}</span>
+          <span className="text-[10px] text-gray-400">{userObj.email} • {userObj.phone}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${
+          r.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+          r.status === 'Pending' ? 'bg-amber-50 text-amber-800 border-amber-100' :
+          'bg-red-50 text-red-800 border-red-100'
+        }`}>
+          {r.status}
+        </span>
+      </td>
+      <td className="px-6 py-4 text-gray-400">
+        {new Date(r.registered_at).toLocaleDateString()}
+      </td>
+      <td className="px-6 py-4">
+        {r.checked_in ? (
+          <span className="inline-flex items-center text-emerald-600 space-x-1">
+            <Check size={14} className="stroke-[3]" />
+            <span>Checked In</span>
+          </span>
+        ) : (
+          <span className="text-gray-400">Not Present</span>
+        )}
+      </td>
+      {hasEditRights && (
+        <td className="px-6 py-4 text-right">
+          <div className="flex items-center justify-end space-x-2">
+            {/* Organizer Registration Approvals */}
+            {isOrganizer && (
+              <>
+                {(r.status === 'Pending' || r.status === 'Rejected') && (
+                  <button
+                    onClick={() => handleApprove(r.id)}
+                    className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-100 rounded-lg transition"
+                    title="Approve registration"
+                  >
+                    Approve
+                  </button>
+                )}
+                {(r.status === 'Pending' || r.status === 'Approved') && (
+                  <button
+                    onClick={() => handleReject(r.id)}
+                    className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-100 rounded-lg transition"
+                    title="Reject registration"
+                  >
+                    Reject
+                  </button>
+                )}
+              </>
+            )}
+
+            {r.status === 'Approved' && r.checked_in && (
+              <span className="text-[10px] text-gray-400 font-bold uppercase">Ready</span>
+            )}
+          </div>
+        </td>
+      )}
+    </tr>
+  );
+});
