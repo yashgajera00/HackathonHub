@@ -20,6 +20,8 @@ export const HackathonProvider = ({ children }) => {
       setActiveHackathonId(savedHackathonId);
       setActiveHackathonRole(savedRole);
       fetchDetails(savedHackathonId);
+    } else {
+      clearActiveHackathon();
     }
   }, [user]);
 
