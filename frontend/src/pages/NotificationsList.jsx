@@ -71,14 +71,14 @@ export default function NotificationsList() {
     try {
       await api.post('/notifications/mark_all_as_read/');
       showToast('All notifications marked as read.', 'success');
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications([]);
     } catch (e) {
       showToast('Failed to mark read.', 'error');
     }
   }, [showToast]);
 
   const handleMarkRead = useCallback((id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
   const handleAcceptInvite = useCallback(async (id) => {
@@ -185,38 +185,44 @@ export default function NotificationsList() {
 }
 
 const NotificationRow = React.memo(({ n, onMarkRead }) => {
-  const [read, setRead] = useState(n.read);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setRead(n.read);
-  }, [n.read]);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const handleMarkRead = async () => {
     try {
       setLoading(true);
       await api.post(`/notifications/${n.id}/mark_as_read/`);
-      setRead(true);
-      if (onMarkRead) {
-        onMarkRead(n.id);
-      }
+      setIsRemoving(true);
+      setTimeout(() => {
+        if (onMarkRead) {
+          onMarkRead(n.id);
+        }
+      }, 300);
     } catch (e) {
       console.error(e);
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div 
-      className={`p-5 flex items-start justify-between space-x-4 transition hover:bg-gray-50/20 ${!read ? 'bg-blue-50/20' : ''}`}
+      style={{
+        maxHeight: isRemoving ? '0px' : '300px',
+        paddingTop: isRemoving ? '0px' : '',
+        paddingBottom: isRemoving ? '0px' : '',
+        opacity: isRemoving ? 0 : 1,
+        transform: isRemoving ? 'translateX(30px)' : 'none',
+        overflow: 'hidden',
+        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+      }}
+      className={`p-5 flex items-start justify-between space-x-4 hover:bg-gray-50/20 ${!n.read ? 'bg-blue-50/20' : ''}`}
     >
       <div className="flex items-start space-x-3.5">
-        <span className={`p-2 rounded-xl flex-shrink-0 mt-0.5 ${!read ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
+        <span className={`p-2 rounded-xl flex-shrink-0 mt-0.5 ${!n.read ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
           <Bell size={16} />
         </span>
         <div>
-          <h4 className={`text-sm font-bold text-gray-800 ${!read ? 'text-gray-900 font-extrabold' : ''}`}>{n.title}</h4>
+          <h4 className={`text-sm font-bold text-gray-800 ${!n.read ? 'text-gray-900 font-extrabold' : ''}`}>{n.title}</h4>
           <p className="text-xs text-gray-500 mt-1 leading-relaxed">{n.message}</p>
           <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-2 inline-block">
             {new Date(n.created_at).toLocaleString()}
@@ -224,7 +230,7 @@ const NotificationRow = React.memo(({ n, onMarkRead }) => {
         </div>
       </div>
 
-      {!read && (
+      {!n.read && (
         <div className="flex items-center justify-center flex-shrink-0">
           {loading ? (
             <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent animate-spin rounded-full"></div>
