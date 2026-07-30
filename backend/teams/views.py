@@ -251,6 +251,14 @@ class TeamViewSet(viewsets.ModelViewSet):
         team.status = 'Approved'
         team.save()
 
+        # Automatically approve registration for all team members
+        from registrations.models import Registration
+        team_member_users = [member.user for member in team.members.all()]
+        Registration.objects.filter(
+            hackathon=team.hackathon,
+            user__in=team_member_users
+        ).update(status='Approved')
+
         log_activity(
             request.user,
             "Approved team",
@@ -291,6 +299,20 @@ class TeamViewSet(viewsets.ModelViewSet):
 
         team.status = 'Rejected'
         team.save()
+
+        # Automatically reject registration and remove HackathonMember participant record for all team members
+        from registrations.models import Registration
+        team_member_users = [member.user for member in team.members.all()]
+        Registration.objects.filter(
+            hackathon=team.hackathon,
+            user__in=team_member_users
+        ).update(status='Rejected')
+
+        HackathonMember.objects.filter(
+            hackathon=team.hackathon,
+            user__in=team_member_users,
+            role='Participant'
+        ).delete()
 
         log_activity(
             request.user,

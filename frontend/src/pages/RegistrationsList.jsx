@@ -163,7 +163,6 @@ export default function RegistrationsList() {
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Date Registered</th>
                   <th className="px-6 py-4">Attendance</th>
-                  {hasEditRights && <th className="px-6 py-4 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
@@ -171,9 +170,6 @@ export default function RegistrationsList() {
                   <RegistrationRow
                     key={r.id}
                     r={r}
-                    hasEditRights={hasEditRights}
-                    isOrganizer={isOrganizer}
-                    onStatusChange={handleStatusChange}
                   />
                 ))}
               </tbody>
@@ -187,7 +183,7 @@ export default function RegistrationsList() {
       </div>
 
       {/* Pagination Controls */}
-      {totalCount > 10 && (
+      {typeof totalCount !== 'undefined' && totalCount > 10 && (
         <div className="flex items-center justify-between bg-white border border-gray-100 px-4 py-3 rounded-2xl shadow-xs">
           <span className="text-xs text-gray-500 font-medium">Page {page} of {Math.ceil(totalCount / 10)}</span>
           <div className="flex space-x-2">
@@ -212,156 +208,47 @@ export default function RegistrationsList() {
   );
 }
 
-const RegistrationRow = React.memo(({ r, hasEditRights, isOrganizer, onStatusChange }) => {
-  const { showToast } = useToast();
-  const [status, setStatus] = useState(r.status);
-  const [checkedIn, setCheckedIn] = useState(r.checked_in);
-  const [loading, setLoading] = useState(false);
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-
-  useEffect(() => {
-    setStatus(r.status);
-    setCheckedIn(r.checked_in);
-  }, [r.status, r.checked_in]);
-
-  const handleApprove = async () => {
-    try {
-      setLoading(true);
-      const response = await api.post(`/registrations/${r.id}/approve/`);
-      showToast('Registration approved successfully! User is now a participant.', 'success');
-      setStatus('Approved');
-      if (onStatusChange) {
-        onStatusChange(r.id, response.data);
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to approve registration.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirmReject = async () => {
-    try {
-      setLoading(true);
-      setIsRejectModalOpen(false);
-      const response = await api.post(`/registrations/${r.id}/reject/`);
-      showToast('Registration rejected.', 'success');
-      setStatus('Rejected');
-      setCheckedIn(false);
-      if (onStatusChange) {
-        onStatusChange(r.id, response.data);
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to reject registration.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const RegistrationRow = React.memo(({ r }) => {
   const userObj = r.user_details || {};
   const fullName = `${userObj.first_name || ''} ${userObj.last_name || ''}`.trim() || userObj.username;
 
   return (
-    <>
-      <tr className="hover:bg-gray-50/40 transition">
-        <td className="px-6 py-4 flex items-center space-x-3">
-          {userObj.avatar ? (
-            <img src={userObj.avatar} alt="" className="h-8 w-8 rounded-full object-cover border" />
-          ) : (
-            <div className="h-8 w-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold">
-              {userObj.username.slice(0, 2).toUpperCase()}
-            </div>
-          )}
-          <div className="flex flex-col">
-            <span className="font-bold text-gray-900">{fullName}</span>
-            <span className="text-[10px] text-gray-400">{userObj.email} • {userObj.phone}</span>
+    <tr className="hover:bg-gray-50/40 transition">
+      <td className="px-6 py-4 flex items-center space-x-3">
+        {userObj.avatar ? (
+          <img src={userObj.avatar} alt="" className="h-8 w-8 rounded-full object-cover border" />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold">
+            {userObj.username.slice(0, 2).toUpperCase()}
           </div>
-        </td>
-        <td className="px-6 py-4">
-          <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${
-            status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
-            status === 'Pending' ? 'bg-amber-50 text-amber-800 border-amber-100' :
-            'bg-red-50 text-red-800 border-red-100'
-          }`}>
-            {status}
-          </span>
-        </td>
-        <td className="px-6 py-4 text-gray-400">
-          {new Date(r.registered_at).toLocaleDateString()}
-        </td>
-        <td className="px-6 py-4">
-          {checkedIn ? (
-            <span className="inline-flex items-center text-emerald-600 space-x-1">
-              <Check size={14} className="stroke-[3]" />
-              <span>Checked In</span>
-            </span>
-          ) : (
-            <span className="text-gray-400">Not Present</span>
-          )}
-        </td>
-        {hasEditRights && (
-          <td className="px-6 py-4 text-right">
-            <div className="flex items-center justify-end space-x-2">
-              {loading ? (
-                <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent animate-spin rounded-full"></div>
-              ) : (
-                <>
-                  {isOrganizer && (status === 'Pending' || status === 'Rejected') && (
-                    <button
-                      onClick={handleApprove}
-                      className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-100 rounded-lg transition"
-                      title="Approve registration"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {isOrganizer && (status === 'Pending' || status === 'Approved') && (
-                    <button
-                      onClick={() => setIsRejectModalOpen(true)}
-                      className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-100 rounded-lg transition"
-                      title="Reject registration"
-                    >
-                      Reject
-                    </button>
-                  )}
-                </>
-              )}
-
-              {status === 'Approved' && checkedIn && (
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Ready</span>
-              )}
-            </div>
-          </td>
         )}
-      </tr>
-
-      <Modal
-        isOpen={isRejectModalOpen}
-        onClose={() => setIsRejectModalOpen(false)}
-        title="Confirm Rejection"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-600 text-sm">
-            Are you sure you want to reject this registration? This action cannot be undone.
-          </p>
-          <div className="flex justify-end space-x-2 pt-2">
-            <button
-              onClick={() => setIsRejectModalOpen(false)}
-              className="px-4 py-2 border border-gray-200 text-gray-700 font-semibold rounded-xl text-xs hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={confirmReject}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition"
-            >
-              Reject Registration
-            </button>
-          </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900">{fullName}</span>
+          <span className="text-[10px] text-gray-400">{userObj.email} • {userObj.phone}</span>
         </div>
-      </Modal>
-    </>
+      </td>
+      <td className="px-6 py-4">
+        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${
+          r.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+          r.status === 'Pending' ? 'bg-amber-50 text-amber-800 border-amber-100' :
+          'bg-red-50 text-red-800 border-red-100'
+        }`}>
+          {r.status}
+        </span>
+      </td>
+      <td className="px-6 py-4 text-gray-400">
+        {new Date(r.registered_at).toLocaleDateString()}
+      </td>
+      <td className="px-6 py-4">
+        {r.checked_in ? (
+          <span className="inline-flex items-center text-emerald-600 space-x-1">
+            <Check size={14} className="stroke-[3]" />
+            <span>Checked In</span>
+          </span>
+        ) : (
+          <span className="text-gray-400">Not Present</span>
+        )}
+      </td>
+    </tr>
   );
 });

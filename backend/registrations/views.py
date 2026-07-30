@@ -58,6 +58,16 @@ class RegistrationViewSet(viewsets.ModelViewSet):
             details=f"User registered for {reg.hackathon.title}"
         )
         
+        # Automatically add as Participant in HackathonMember so they can form/join a team
+        HackathonMember.objects.get_or_create(
+            hackathon=reg.hackathon,
+            user=self.request.user,
+            defaults={
+                'role': 'Participant',
+                'invitation_status': 'Accepted'
+            }
+        )
+
         # Notify Organizers of the registration
         organizers = HackathonMember.objects.filter(hackathon=reg.hackathon, role='Organizer', invitation_status='Accepted')
         for org in organizers:
