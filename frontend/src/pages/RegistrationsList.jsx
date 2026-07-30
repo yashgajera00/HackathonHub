@@ -49,7 +49,9 @@ export default function RegistrationsList() {
     try {
       await api.post(`/registrations/${id}/approve/`);
       showToast('Registration approved successfully! User is now a participant.', 'success');
-      fetchRegistrations();
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, status: 'Approved' } : reg)
+      );
     } catch (err) {
       console.error(err);
       showToast('Failed to approve registration.', 'error');
@@ -65,7 +67,9 @@ export default function RegistrationsList() {
     try {
       await api.post(`/registrations/${rejectingId}/reject/`);
       showToast('Registration rejected.', 'success');
-      fetchRegistrations();
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === rejectingId ? { ...reg, status: 'Rejected', checked_in: false, checked_in_at: null } : reg)
+      );
     } catch (err) {
       console.error(err);
       showToast('Failed to reject registration.', 'error');
@@ -78,7 +82,9 @@ export default function RegistrationsList() {
     try {
       await api.post(`/registrations/${id}/check_in/`);
       showToast('Participant checked in successfully!', 'success');
-      fetchRegistrations();
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, checked_in: true, checked_in_at: new Date().toISOString() } : reg)
+      );
     } catch (err) {
       console.error(err);
       showToast('Failed to complete check-in.', 'error');
