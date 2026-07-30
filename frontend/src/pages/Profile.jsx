@@ -3,11 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import { User, Phone, Upload, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -59,6 +61,7 @@ export default function Profile() {
 
       await updateProfile(submissionData);
       showToast('Profile updated successfully!', 'success');
+      navigate('/');
     } catch (err) {
       console.error(err);
       showToast('Failed to update profile.', 'error');
