@@ -283,230 +283,124 @@ export default function MyTeam() {
   const isLeader = team.is_leader;
   
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
       {/* Team Info Panel */}
-      <div className="space-y-6 md:col-span-1">
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 truncate">{team.name}</h2>
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active Team</span>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Status</span>
-            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border ${
-              team.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
-              team.status === 'Submitted' ? 'bg-blue-50 text-blue-800 border-blue-100' :
-              team.status === 'Rejected' ? 'bg-rose-50 text-rose-800 border-rose-100' :
-              'bg-amber-50 text-amber-800 border-amber-100'
-            }`}>
-              {team.status || 'Pending'}
-            </span>
-          </div>
-
-          <div className="border-t border-gray-100 my-2"></div>
-
-          {/* Members */}
-          <div className="space-y-3">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Team Roster</span>
-            <div className="space-y-2">
-              {team.members.map((m) => {
-                const u = m.user_details || {};
-                const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
-                
-                return (
-                  <div key={m.id} className="flex items-center justify-between text-xs font-semibold">
-                    <div className="flex items-center space-x-2.5">
-                      <div className="h-6 w-6 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center">
-                        {u.username.slice(0, 2).toUpperCase()}
-                      </div>
-                      <span className="text-gray-800 truncate max-w-[120px]">{name}</span>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${m.role === 'Leader' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
-                        {m.role}
-                      </span>
-                      {isLeader && m.role !== 'Leader' && (team.status === 'Pending' || team.status === 'Rejected') && (
-                        <button
-                          onClick={() => handleKick(u.id, name)}
-                          className="text-gray-400 hover:text-red-600 p-0.5 transition"
-                          title="Kick Member"
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 truncate">{team.name}</h2>
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active Team</span>
           </div>
         </div>
 
-        {/* Invite Peer Form (Leader only) */}
-        {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-gray-900">Invite a Peer</h3>
-            <form onSubmit={handleInviteUser} className="space-y-3 text-xs font-semibold text-gray-400">
-              <div>
-                <label className="block mb-1.5 uppercase tracking-wider">Username</label>
-                <input
-                  type="text"
-                  required
-                  value={inviteUsername}
-                  onChange={(e) => setInviteUsername(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-50/50 focus:bg-white transition"
-                  placeholder="Invite username"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={inviting}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
-              >
-                {inviting && <RefreshCw size={12} className="animate-spin" />}
-                <span>Send Team Invitation</span>
-              </button>
-            </form>
-          </div>
-        )}
+        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Status</span>
+          <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border ${
+            team.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+            team.status === 'Submitted' ? 'bg-blue-50 text-blue-800 border-blue-100' :
+            team.status === 'Rejected' ? 'bg-rose-50 text-rose-800 border-rose-100' :
+            'bg-amber-50 text-amber-800 border-amber-100'
+          }`}>
+            {team.status || 'Pending'}
+          </span>
+        </div>
 
-        {/* Submit Team Panel (Leader only) */}
-        {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-gray-900">Submit Team</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Once submitted, your team will be reviewed by staff. Your roster and project details will be locked.
-            </p>
-            
-            {team.members.length < activeHackathon.min_team_size ? (
-              <div className="p-3 bg-amber-50 border border-amber-100 text-amber-800 rounded-xl text-[10px] font-semibold leading-relaxed">
-                Your team has {team.members.length} member(s). You need at least {activeHackathon.min_team_size} member(s) to submit (Max: {activeHackathon.max_team_size}).
-              </div>
-            ) : (
-              <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-xl text-[10px] font-semibold leading-relaxed">
-                Team size is valid ({team.members.length} members). Ready to submit!
-              </div>
-            )}
+        <div className="border-t border-gray-100 my-2"></div>
 
-            <button
-              onClick={handleSubmitTeam}
-              disabled={submittingTeam || team.members.length < activeHackathon.min_team_size}
-              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
-            >
-              {submittingTeam && <RefreshCw size={12} className="animate-spin" />}
-              <span>Submit Team</span>
-            </button>
+        {/* Members */}
+        <div className="space-y-3">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Team Roster</span>
+          <div className="space-y-2">
+            {team.members.map((m) => {
+              const u = m.user_details || {};
+              const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
+              
+              return (
+                <div key={m.id} className="flex items-center justify-between text-xs font-semibold">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="h-6 w-6 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center">
+                      {u.username.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="text-gray-800 truncate max-w-[120px]">{name}</span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${m.role === 'Leader' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
+                      {m.role}
+                    </span>
+                    {isLeader && m.role !== 'Leader' && (team.status === 'Pending' || team.status === 'Rejected') && (
+                      <button
+                        onClick={() => handleKick(u.id, name)}
+                        className="text-gray-400 hover:text-red-600 p-0.5 transition"
+                        title="Kick Member"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Project Submission Form Panel */}
-      <div className="md:col-span-2 bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold font-display text-gray-900">Project Deliverables</h2>
-          <p className="text-sm text-gray-500 mt-1">Submit your workspace and project details to judges.</p>
-        </div>
-
-        {isLeader && (team.status === 'Pending' || team.status === 'Rejected') ? (
-          <form onSubmit={handleProjectSubmit} className="space-y-6">
+      {/* Invite Peer Form (Leader only) */}
+      {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-gray-900">Invite a Peer</h3>
+          <form onSubmit={handleInviteUser} className="space-y-3 text-xs font-semibold text-gray-400">
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Project Title</label>
+              <label className="block mb-1.5 uppercase tracking-wider">Username</label>
               <input
                 type="text"
                 required
-                value={projectForm.project_title}
-                onChange={(e) => setProjectForm({ ...projectForm, project_title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
-                placeholder="Ex: Decentralized Medical Ledgers"
+                value={inviteUsername}
+                onChange={(e) => setInviteUsername(e.target.value)}
+                className="w-full px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-50/50 focus:bg-white transition"
+                placeholder="Invite username"
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Project Description</label>
-              <textarea
-                required
-                rows={5}
-                value={projectForm.project_description}
-                onChange={(e) => setProjectForm({ ...projectForm, project_description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
-                placeholder="Give a detailed overview of what problem you are solving, tech stacks used, and implementation milestones..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Project Repository Link (e.g. GitHub URL)</label>
-              <input
-                type="url"
-                required
-                value={projectForm.project_submission_link}
-                onChange={(e) => setProjectForm({ ...projectForm, project_submission_link: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
-                placeholder="https://github.com/myusername/myrepository"
-              />
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={savingProject}
-                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md text-sm transition disabled:opacity-50 flex items-center space-x-1.5"
-              >
-                {savingProject && <RefreshCw size={14} className="animate-spin" />}
-                <span>Save Deliverables</span>
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={inviting}
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
+            >
+              {inviting && <RefreshCw size={12} className="animate-spin" />}
+              <span>Send Team Invitation</span>
+            </button>
           </form>
-        ) : (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Project Title</h4>
-                <p className="text-sm font-semibold text-gray-800 mt-1">{team.project_title || 'No submission title.'}</p>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Description</h4>
-                <p className="text-xs text-gray-600 mt-1 leading-relaxed whitespace-pre-line">{team.project_description || 'No description provided.'}</p>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Repository Link</h4>
-                {team.project_submission_link ? (
-                  <a 
-                    href={team.project_submission_link} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="inline-block text-xs font-bold text-blue-600 hover:underline mt-1"
-                  >
-                    {team.project_submission_link}
-                  </a>
-                ) : (
-                  <p className="text-xs text-gray-400 mt-1 italic">No repo submitted.</p>
-                )}
-              </div>
+        </div>
+      )}
+
+      {/* Submit Team Panel (Leader only) */}
+      {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
+          <h3 className="text-sm font-bold text-gray-900">Submit Team</h3>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Once submitted, your team will be reviewed by staff. Your roster and details will be locked.
+          </p>
+          
+          {team.members.length < activeHackathon.min_team_size ? (
+            <div className="p-3 bg-amber-50 border border-amber-100 text-amber-800 rounded-xl text-[10px] font-semibold leading-relaxed">
+              Your team has {team.members.length} member(s). You need at least {activeHackathon.min_team_size} member(s) to submit (Max: {activeHackathon.max_team_size}).
             </div>
-            
-            {team.status === 'Submitted' ? (
-              <div className="p-4 bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl flex items-start space-x-3 text-xs">
-                <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5 animate-pulse" />
-                <p>This team is currently <strong>Submitted (Awaiting Approval)</strong>. Roster and project deliverables are locked for review.</p>
-              </div>
-            ) : team.status === 'Approved' ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-2xl flex items-start space-x-3 text-xs">
-                <ShieldCheck className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <p>Congratulations! Your team has been <strong>Approved & Selected</strong>. All details are finalized.</p>
-              </div>
-            ) : (
-              <div className="p-4 bg-blue-50 border border-blue-100 text-blue-800 rounded-2xl flex items-start space-x-3 text-xs">
-                <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <p>Only the Team Leader (<span className="font-semibold">{team.created_by_username}</span>) has rights to update project submissions.</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-xl text-[10px] font-semibold leading-relaxed">
+              Team size is valid ({team.members.length} members). Ready to submit!
+            </div>
+          )}
+
+          <button
+            onClick={handleSubmitTeam}
+            disabled={submittingTeam || team.members.length < activeHackathon.min_team_size}
+            className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
+          >
+            {submittingTeam && <RefreshCw size={12} className="animate-spin" />}
+            <span>Submit Team</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
