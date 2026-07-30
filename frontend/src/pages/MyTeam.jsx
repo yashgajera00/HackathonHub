@@ -346,9 +346,9 @@ export default function MyTeam() {
         </div>
 
         {/* Pending Invites */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Incoming Team Invitations ({pendingInvites.length})</h3>
-          {pendingInvites.length > 0 ? (
+        {pendingInvites.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Incoming Team Invitations ({pendingInvites.length})</h3>
             <div className="grid grid-cols-1 gap-4">
               {pendingInvites.map((invite) => (
                 <div key={invite.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-2xs flex items-center justify-between">
@@ -378,12 +378,8 @@ export default function MyTeam() {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
-              No team invitations are currently pending.
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }
