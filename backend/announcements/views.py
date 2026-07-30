@@ -4,6 +4,31 @@ from announcements.serializers import AnnouncementSerializer, RuleSerializer, Sc
 from common.permissions import IsHackathonOrganizer
 from dashboard.models import log_activity
 
+def notify_enrolled_users(hackathon, title, message, exclude_user=None):
+    from registrations.models import Registration
+    from memberships.models import HackathonMember
+    from notifications.models import Notification
+
+    user_ids = set()
+    # 1. Users with approved registrations
+    regs = Registration.objects.filter(hackathon=hackathon, status='Approved')
+    for r in regs:
+        user_ids.add(r.user_id)
+    # 2. Users with accepted memberships (staff, organizers, judges, etc.)
+    members = HackathonMember.objects.filter(hackathon=hackathon, invitation_status='Accepted')
+    for m in members:
+        user_ids.add(m.user_id)
+
+    if exclude_user:
+        user_ids.discard(exclude_user.id)
+
+    # Bulk create notifications
+    notifications = [
+        Notification(user_id=uid, title=title, message=message)
+        for uid in user_ids
+    ]
+    Notification.objects.bulk_create(notifications)
+
 class BaseHackathonFilterViewSet(viewsets.ModelViewSet):
     """
     Base viewset to automatically filter by hackathon_id from query params or header
@@ -35,6 +60,12 @@ class AnnouncementViewSet(BaseHackathonFilterViewSet):
             hackathon=ann.hackathon, 
             details=f"Created announcement: {ann.title}"
         )
+        
+        # Send notifications
+        title = f"New Announcement: {ann.title}"
+        snippet = ann.content[:150] + "..." if len(ann.content) > 150 else ann.content
+        message = f"An announcement has been posted for '{ann.hackathon.title}': {snippet}"
+        notify_enrolled_users(ann.hackathon, title, message, exclude_user=self.request.user)
 
 class RuleViewSet(BaseHackathonFilterViewSet):
     serializer_class = RuleSerializer
@@ -47,6 +78,12 @@ class RuleViewSet(BaseHackathonFilterViewSet):
             hackathon=rule.hackathon, 
             details=f"Created rule: {rule.title}"
         )
+        
+        # Send notifications
+        title = f"New Hackathon Rule: {rule.title}"
+        snippet = rule.content[:150] + "..." if len(rule.content) > 150 else rule.content
+        message = f"A new rule has been added to '{rule.hackathon.title}': {snippet}"
+        notify_enrolled_users(rule.hackathon, title, message, exclude_user=self.request.user)
 
 class ScheduleItemViewSet(BaseHackathonFilterViewSet):
     serializer_class = ScheduleItemSerializer
@@ -59,4 +96,11 @@ class ScheduleItemViewSet(BaseHackathonFilterViewSet):
             hackathon=item.hackathon, 
             details=f"Created schedule item: {item.title}"
         )
+        
+        # Send notifications
+        title = f"Schedule Update: {item.title}"
+        time_str = item.start_time.strftime('%Y-%m-%d %I:%M %p')
+        venue_str = f" at {item.venue}" if item.venue else ""
+        message = f"A new event '{item.title}' has been added to '{item.hackathon.title}' schedule{venue_str}, starting at {time_str}."
+        notify_enrolled_users(item.hackathon, title, message, exclude_user=self.request.user)
 
