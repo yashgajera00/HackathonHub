@@ -61,7 +61,7 @@ export default function JoinTeam() {
             <div className="flex justify-center">
               <RefreshCw className="h-10 w-10 text-blue-600 animate-spin" />
             </div>
-            <h2 className="text-xl font-bold font-display text-gray-900">Joining Team</h2>
+            <h2 className="text-xl font-bold font-display text-gray-900">Requesting to Join</h2>
             <p className="text-xs text-gray-400">Verifying invite credentials and roster brackets...</p>
           </div>
         )}
@@ -73,7 +73,7 @@ export default function JoinTeam() {
                 <CheckCircle size={28} />
               </div>
             </div>
-            <h2 className="text-xl font-bold font-display text-gray-900">Success!</h2>
+            <h2 className="text-xl font-bold font-display text-gray-900">Request Sent!</h2>
             <p className="text-xs text-gray-500">{successMsg}</p>
             <p className="text-[10px] text-gray-400 animate-pulse mt-2">Redirecting you to dashboard...</p>
           </div>
@@ -86,7 +86,7 @@ export default function JoinTeam() {
                 <ShieldAlert size={28} />
               </div>
             </div>
-            <h2 className="text-xl font-bold font-display text-gray-900">Unable to Join Team</h2>
+            <h2 className="text-xl font-bold font-display text-gray-900">Unable to Request Join</h2>
             <p className="text-xs text-rose-600 leading-relaxed px-2 bg-rose-50/50 py-2 border border-rose-100/50 rounded-xl">{error}</p>
             
             <div className="pt-4 flex flex-col space-y-2">

@@ -59,40 +59,31 @@ class TeamViewSet(viewsets.ModelViewSet):
         if not reg:
             return Response({"detail": "You must be registered and approved in this hackathon to join a team."}, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            TeamMember.objects.create(
-                team=team,
-                user=request.user,
-                role='Member',
-                hackathon=team.hackathon
-            )
-            
-            TeamInvitation.objects.filter(
-                invitee=request.user,
-                team__hackathon=team.hackathon,
-                status='Pending'
-            ).update(status='Rejected')
+        # Check if already requested
+        if TeamJoinRequest.objects.filter(team=team, requester=request.user, status='Pending').exists():
+            return Response({"detail": "Join request to this team is already pending."}, status=status.HTTP_400_BAD_REQUEST)
 
-            TeamJoinRequest.objects.filter(
+        with transaction.atomic():
+            join_req = TeamJoinRequest.objects.create(
+                team=team,
                 requester=request.user,
-                team__hackathon=team.hackathon,
                 status='Pending'
-            ).update(status='Rejected')
+            )
             
             log_activity(
                 request.user,
-                "Joined team via link",
+                "Requested to join team via link",
                 hackathon=team.hackathon,
-                details=f"Joined team: {team.name} directly via invite link"
+                details=f"Requested to join team: {team.name} via invite link"
             )
             
             Notification.objects.create(
                 user=team.created_by,
-                title="New Team Member Joined",
-                message=f"{request.user.username} joined your team '{team.name}' via invite link."
+                title="New Team Join Request",
+                message=f"{request.user.username} has requested to join your team '{team.name}' via invite link."
             )
             
-        return Response({"detail": f"Successfully joined team '{team.name}'!", "team_id": team.id})
+        return Response({"detail": f"Successfully sent join request for team '{team.name}'! The leader has been notified.", "team_id": team.id})
 
     def get_permissions(self):
         if self.action in ['create', 'leave', 'submit_project']:
