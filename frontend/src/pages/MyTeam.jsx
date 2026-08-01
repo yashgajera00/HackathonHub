@@ -44,7 +44,9 @@ export default function MyTeam() {
     try {
       setLoading(true);
       // Fetch teams user belongs to
-      const response = await api.get('/teams/');
+      const response = await api.get('/teams/', {
+        params: { my_only: true }
+      });
       const userTeams = response.data.results || response.data;
       
       if (userTeams.length > 0) {

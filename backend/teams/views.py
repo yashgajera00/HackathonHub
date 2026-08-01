@@ -48,8 +48,13 @@ class TeamViewSet(viewsets.ModelViewSet):
             return Team.objects.none()
 
         hackathon_id = self.request.query_params.get('hackathon_id') or self.request.headers.get('X-Hackathon-Id')
+        my_only = self.request.query_params.get('my_only') == 'true'
+
         if hackathon_id:
-            return Team.objects.filter(hackathon_id=hackathon_id)
+            queryset = Team.objects.filter(hackathon_id=hackathon_id)
+            if my_only:
+                queryset = queryset.filter(members__user=user)
+            return queryset
 
         # By default, list teams user is a member of
         return Team.objects.filter(members__user=user)
