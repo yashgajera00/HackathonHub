@@ -22,6 +22,19 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return PlatformOwnerUserSerializer
         return UserSerializer
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.id == request.user.id:
+            # Check if they are trying to suspend themselves
+            if 'is_active' in request.data:
+                is_active = request.data.get('is_active')
+                if is_active is False or is_active == 'false' or is_active == 0:
+                    return Response(
+                        {"detail": "You cannot suspend yourself."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+        return super().update(request, *args, **kwargs)
+
     @action(detail=False, methods=['get', 'put', 'patch'], permission_classes=[IsAuthenticated])
     def profile(self, request):
         """

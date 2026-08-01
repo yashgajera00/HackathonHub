@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { Search, UserCheck, ShieldCheck, UserMinus, ShieldAlert } from 'lucide-react';
 
 export default function SystemUsers() {
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,11 @@ export default function SystemUsers() {
   };
 
   const toggleSuspension = async (userObj) => {
+    if (userObj.id === user?.id) {
+      showToast('You cannot suspend yourself.', 'error');
+      return;
+    }
+
     const nextVal = !userObj.is_active;
     const confirmMsg = nextVal 
       ? `Activate account for ${userObj.username}?`
@@ -57,7 +64,8 @@ export default function SystemUsers() {
       showToast(`Account status updated for ${userObj.username}.`, 'success');
       fetchUsers();
     } catch (e) {
-      showToast('Failed to update account status.', 'error');
+      const errMsg = e.response?.data?.detail || 'Failed to update account status.';
+      showToast(errMsg, 'error');
     }
   };
 
@@ -140,16 +148,20 @@ export default function SystemUsers() {
                         </button>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => toggleSuspension(u)}
-                          className={`p-1 px-2.5 rounded-lg font-bold border transition ${
-                            u.is_active
-                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-100'
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-100'
-                          }`}
-                        >
-                          {u.is_active ? 'Suspend' : 'Unsuspend'}
-                        </button>
+                        {u.id === user?.id ? (
+                          <span className="text-[10px] text-gray-400 italic font-semibold">Current User</span>
+                        ) : (
+                          <button
+                            onClick={() => toggleSuspension(u)}
+                            className={`p-1 px-2.5 rounded-lg font-bold border transition ${
+                              u.is_active
+                                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-100'
+                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-100'
+                            }`}
+                          >
+                            {u.is_active ? 'Suspend' : 'Unsuspend'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

@@ -7,10 +7,16 @@ import { Search, MapPin, Calendar, Users, SlidersHorizontal, ArrowRight, Sparkle
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function HackathonsList() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { selectHackathon, activeHackathonId } = useHackathon();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && refreshUser) {
+      refreshUser().catch(err => console.error("Error refreshing user profile", err));
+    }
+  }, []);
 
   const [hackathons, setHackathons] = useState([]);
   const [loading, setLoading] = useState(true);

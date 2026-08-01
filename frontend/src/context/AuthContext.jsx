@@ -9,16 +9,34 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Load initial user state
-    try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser && savedUser !== 'undefined') {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser && savedUser !== 'undefined') {
+      try {
         setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Failed to parse saved user", e);
+        localStorage.removeItem('user');
       }
-    } catch (e) {
-      console.error("Failed to parse saved user", e);
-      localStorage.removeItem('user');
-    } finally {
-      setLoading(false);
+    }
+    setLoading(false);
+
+    // Sync latest user status/permissions from backend
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      api.get('/users/profile/')
+        .then((response) => {
+          setUser((prev) => {
+            const updated = {
+              ...prev,
+              ...response.data
+            };
+            localStorage.setItem('user', JSON.stringify(updated));
+            return updated;
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to sync user profile on initialization", err);
+        });
     }
   }, []);
 
