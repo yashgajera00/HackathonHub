@@ -113,6 +113,10 @@ export default function Sidebar({ isOpen, onClose }) {
               <QrCode size={18} />
               <span>Scan QR Check-in</span>
             </NavLink>
+            <NavLink to="/teams" className={navLinkClass}>
+              <Trophy size={18} />
+              <span>Teams & Projects</span>
+            </NavLink>
           </>
         )}
 

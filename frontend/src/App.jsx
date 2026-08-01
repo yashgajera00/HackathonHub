@@ -158,13 +158,13 @@ function App() {
                     <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
                     <Route path="/edit-hackathon" element={<EditHackathon />} />
                     <Route path="/members" element={<MembersList />} />
-                    <Route path="/teams" element={<TeamsList />} />
                   </Route>
 
                   {/* Volunteer/Staff Management Routes */}
                   <Route element={<HackathonVolunteerRoute />}>
                     <Route path="/registrations" element={<RegistrationsList />} />
                     <Route path="/qr-checkin" element={<QRCheckin />} />
+                    <Route path="/teams" element={<TeamsList />} />
                   </Route>
 
                   {/* Judge Routes */}

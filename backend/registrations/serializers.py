@@ -9,13 +9,23 @@ class RegistrationSerializer(serializers.ModelSerializer):
     user_details = UserMinSerializer(source='user', read_only=True)
     hackathon_details = HackathonMinSerializer(source='hackathon', read_only=True)
 
+    team_name = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Registration
         fields = (
             'id', 'hackathon', 'hackathon_details', 'user', 'user_details', 
-            'status', 'registered_at', 'checked_in', 'checked_in_at', 'qr_code_uuid'
+            'status', 'registered_at', 'checked_in', 'checked_in_at', 'qr_code_uuid',
+            'team_name'
         )
         read_only_fields = ('id', 'user', 'status', 'registered_at', 'checked_in', 'checked_in_at', 'qr_code_uuid')
+
+    def get_team_name(self, obj):
+        from teams.models import TeamMember
+        member = TeamMember.objects.filter(hackathon=obj.hackathon, user=obj.user).first()
+        if member:
+            return member.team.name
+        return None
 
     def validate(self, data):
         hackathon = data.get('hackathon')

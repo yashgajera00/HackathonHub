@@ -162,7 +162,7 @@ export default function RegistrationsList() {
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Date Registered</th>
                   <th className="px-6 py-4">Attendance</th>
-                  {hasEditRights && <th className="px-6 py-4 text-right">Actions</th>}
+                  <th className="px-6 py-4">Team</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
@@ -298,71 +298,15 @@ const RegistrationRow = React.memo(({ r, hasEditRights, isOrganizer, onStatusCha
           <span className="text-gray-400">Not Present</span>
         )}
       </td>
-      {hasEditRights && (
-        <td className="px-6 py-4 text-right">
-          {actionLoading ? (
-            <div className="inline-block h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            <div className="flex items-center justify-end space-x-2">
-              {r.status === 'Pending' && isOrganizer && (
-                <>
-                  <button
-                    onClick={handleApprove}
-                    className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100 rounded-lg transition"
-                    title="Approve Participant"
-                  >
-                    <UserCheck size={14} />
-                  </button>
-                  <button
-                    onClick={handleReject}
-                    className="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-100 rounded-lg transition"
-                    title="Reject Participant"
-                  >
-                    <UserX size={14} />
-                  </button>
-                </>
-              )}
-              {r.status === 'Approved' && (
-                <>
-                  {!r.checked_in && (
-                    <button
-                      onClick={handleCheckIn}
-                      className="p-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100 rounded-lg transition"
-                      title="Verify Check-in"
-                    >
-                      <Check size={14} />
-                    </button>
-                  )}
-                  {isOrganizer && (
-                    <button
-                      onClick={handleReject}
-                      className="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-100 rounded-lg transition"
-                      title="Reject Participant"
-                    >
-                      <UserX size={14} />
-                    </button>
-                  )}
-                </>
-              )}
-              {r.status === 'Rejected' && isOrganizer && (
-                <button
-                  onClick={handleApprove}
-                  className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100 rounded-lg transition"
-                  title="Approve Participant"
-                >
-                  <UserCheck size={14} />
-                </button>
-              )}
-              {((r.status === 'Pending' || r.status === 'Rejected') && !isOrganizer) && (
-                <span className="text-[10px] text-gray-400 italic">No permission</span>
-              )}
-              {r.status === 'Approved' && r.checked_in && !isOrganizer && (
-                <span className="text-[10px] text-emerald-600 font-bold">Verified</span>
-              )}
-            </div>
-          )}
-        </td>
-      )}
+      <td className="px-6 py-4">
+        {r.team_name ? (
+          <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-blue-50 text-blue-700 border border-blue-100">
+            {r.team_name}
+          </span>
+        ) : (
+          <span className="text-gray-400 italic">No Team</span>
+        )}
+      </td>
     </tr>
   );
 });
