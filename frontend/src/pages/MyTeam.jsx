@@ -102,7 +102,7 @@ export default function MyTeam() {
     if (!joinTeamName) return;
     setJoining(true);
     try {
-      await api.post('/teams/request_join/', {
+      await api.post('/team-invitations/request_join/', {
         team_name: joinTeamName,
         hackathon_id: activeHackathon.id
       });
