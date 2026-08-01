@@ -36,13 +36,19 @@ export default function MyTeam() {
 
   useEffect(() => {
     if (activeHackathon) {
-      fetchMyTeamState();
+      fetchMyTeamState(false);
+      
+      const interval = setInterval(() => {
+        fetchMyTeamState(true);
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
-  }, [activeHackathon]);
+  }, [activeHackathon?.id]);
 
-  const fetchMyTeamState = async () => {
+  const fetchMyTeamState = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       // Fetch teams user belongs to
       const response = await api.get('/teams/', {
         params: { my_only: true }
@@ -52,13 +58,17 @@ export default function MyTeam() {
       if (userTeams.length > 0) {
         const teamObj = userTeams[0];
         setTeam(teamObj);
-        setProjectForm({
-          project_title: teamObj.project_title || '',
-          project_description: teamObj.project_description || '',
-          project_submission_link: teamObj.project_submission_link || ''
-        });
+        
+        if (!silent) {
+          setProjectForm({
+            project_title: teamObj.project_title || '',
+            project_description: teamObj.project_description || '',
+            project_submission_link: teamObj.project_submission_link || ''
+          });
+        }
+
         if (teamObj.is_leader) {
-          fetchJoinRequests();
+          await fetchJoinRequests(silent);
         } else {
           setJoinRequests([]);
         }
@@ -66,32 +76,44 @@ export default function MyTeam() {
         setTeam(null);
         setJoinRequests([]);
         // If not in team, fetch pending team invitations sent to this user
-        fetchPendingInvitations();
+        fetchPendingInvitations(silent);
       }
     } catch (e) {
       console.error(e);
-      showToast('Failed to load team details.', 'error');
+      if (!silent) showToast('Failed to load team details.', 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
-  const fetchPendingInvitations = async () => {
+  const fetchPendingInvitations = async (silent = false) => {
     try {
       const response = await api.get('/team-invitations/my_invitations/');
-      setPendingInvites(response.data.results || response.data);
+      const newInvites = response.data.results || response.data;
+      setPendingInvites(prev => {
+        if (silent && newInvites.length > prev.length) {
+          showToast(`You have received a new team invitation!`, 'info');
+        }
+        return newInvites;
+      });
     } catch (e) {
       console.error(e);
     }
   };
 
-  const fetchJoinRequests = async () => {
+  const fetchJoinRequests = async (silent = false) => {
     try {
       const response = await api.get('/team-join-requests/', {
         params: { hackathon_id: activeHackathon.id }
       });
-      const allReqs = response.data.results || response.data;
-      setJoinRequests(allReqs.filter(r => r.status === 'Pending'));
+      const allReqs = (response.data.results || response.data).filter(r => r.status === 'Pending');
+      setJoinRequests(prev => {
+        if (silent && allReqs.length > prev.length) {
+          const diffCount = allReqs.length - prev.length;
+          showToast(`${diffCount} new team join request(s) received!`, 'info');
+        }
+        return allReqs;
+      });
     } catch (err) {
       console.error(err);
     }
