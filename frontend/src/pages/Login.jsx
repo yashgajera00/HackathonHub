@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { KeyRound, Mail, User, ShieldAlert } from 'lucide-react';
+import { KeyRound, User } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
@@ -41,12 +41,6 @@ export default function Login() {
         <h2 className="text-3xl font-bold tracking-tight text-gray-900 font-display">
           Sign in to HackathonHub
         </h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Or{' '}
-          <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition">
-            create a new account
-          </Link>
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -68,7 +62,6 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="admin"
                 />
               </div>
             </div>
@@ -94,7 +87,6 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="admin123"
                 />
               </div>
             </div>
@@ -109,15 +101,13 @@ export default function Login() {
               </button>
             </div>
           </form>
-          
-          <div className="mt-6 p-4 bg-gray-50 border border-gray-100 rounded-xl flex items-start space-x-3 text-xs text-gray-500">
-            <ShieldAlert className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-gray-700">Developer Demo Credentials:</p>
-              <p className="mt-1">Username: <span className="font-mono bg-white border px-1 py-0.5 rounded">admin</span></p>
-              <p>Password: <span className="font-mono bg-white border px-1 py-0.5 rounded">admin123</span></p>
-            </div>
-          </div>
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition">
+              create a new account
+            </Link>
+          </p>
         </div>
       </div>
     </div>

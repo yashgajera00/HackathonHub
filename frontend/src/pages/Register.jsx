@@ -62,12 +62,6 @@ export default function Register() {
         <h2 className="text-3xl font-bold tracking-tight text-gray-900 font-display">
           Create your account
         </h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition">
-            Sign in
-          </Link>
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -89,7 +83,6 @@ export default function Register() {
                   value={formData.username}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="johndoe"
                 />
               </div>
             </div>
@@ -107,7 +100,6 @@ export default function Register() {
                   value={formData.first_name}
                   onChange={handleChange}
                   className="mt-1 block w-full px-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="John"
                 />
               </div>
               <div>
@@ -122,7 +114,6 @@ export default function Register() {
                   value={formData.last_name}
                   onChange={handleChange}
                   className="mt-1 block w-full px-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="Doe"
                 />
               </div>
             </div>
@@ -143,7 +134,6 @@ export default function Register() {
                   value={formData.email}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="john@example.com"
                 />
               </div>
             </div>
@@ -164,7 +154,6 @@ export default function Register() {
                   value={formData.phone}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                  placeholder="+15551234567"
                 />
               </div>
             </div>
@@ -186,7 +175,6 @@ export default function Register() {
                     value={formData.password}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                    placeholder="••••••••"
                   />
                 </div>
               </div>
@@ -206,7 +194,6 @@ export default function Register() {
                     value={formData.confirm_password}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-1.5 border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition"
-                    placeholder="••••••••"
                   />
                 </div>
               </div>
@@ -222,6 +209,13 @@ export default function Register() {
               </button>
             </div>
           </form>
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500 transition">
+              Sign in
+            </Link>
+          </p>
         </div>
       </div>
     </div>
