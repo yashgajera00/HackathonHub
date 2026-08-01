@@ -37,11 +37,11 @@ export default function JoinTeam() {
         // but redirecting to /my-team will trigger context reload.
         // Let's delay redirect slightly so user sees success.
         setTimeout(() => {
-          navigate('/my-team');
+          navigate('/');
         }, 1500);
       } else {
         setTimeout(() => {
-          navigate('/my-team');
+          navigate('/');
         }, 1500);
       }
     } catch (err) {
