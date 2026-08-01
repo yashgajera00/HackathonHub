@@ -25,9 +25,9 @@ export const HackathonProvider = ({ children }) => {
     }
   }, [user]);
 
-  const fetchDetails = async (id) => {
+  const fetchDetails = async (id, silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       // Temporarily store in local storage so the api request interceptor attaches it
       localStorage.setItem('active_hackathon_id', id);
       const response = await api.get(`/hackathons/${id}/`);
@@ -44,9 +44,9 @@ export const HackathonProvider = ({ children }) => {
       }
     } catch (e) {
       console.error("Failed to load active hackathon details", e);
-      clearActiveHackathon();
+      if (!silent) clearActiveHackathon();
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -76,7 +76,7 @@ export const HackathonProvider = ({ children }) => {
       loading,
       selectHackathon,
       clearActiveHackathon,
-      refreshHackathonDetails: () => fetchDetails(activeHackathonId)
+      refreshHackathonDetails: (silent = false) => fetchDetails(activeHackathonId, silent)
     }}>
       {children}
     </HackathonContext.Provider>

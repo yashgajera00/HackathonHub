@@ -10,7 +10,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function HackathonDetails() {
-  const { activeHackathon, activeHackathonRole } = useHackathon();
+  const { activeHackathon, activeHackathonRole, refreshHackathonDetails } = useHackathon();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
   
@@ -53,6 +53,7 @@ export default function HackathonDetails() {
       }
 
       const interval = setInterval(() => {
+        refreshHackathonDetails(true);
         fetchSchedule(true);
         fetchRules(true);
         fetchUserRegistration(true);
@@ -63,7 +64,7 @@ export default function HackathonDetails() {
 
       return () => clearInterval(interval);
     }
-  }, [activeHackathon, activeHackathonRole]);
+  }, [activeHackathon?.id, activeHackathonRole]);
 
   const fetchUserRegistration = async (silent = false) => {
     try {

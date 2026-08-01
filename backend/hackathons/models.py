@@ -36,3 +36,33 @@ class Hackathon(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        from django.utils import timezone
+        now = timezone.now()
+
+        # If status is Cancelled, don't touch it.
+        if self.status != 'Cancelled':
+            # Check if publish_time is set and in the future
+            if self.publish_time and now < self.publish_time:
+                self.status = 'Draft'
+            else:
+                # If status is Draft, check if publish_time has passed
+                if self.status == 'Draft':
+                    if self.publish_time and now >= self.publish_time:
+                        self.status = 'Published'
+                
+                # If status is not Draft (Published, Registration Open, etc.):
+                if self.status != 'Draft':
+                    if now < self.registration_start:
+                        self.status = 'Published'
+                    elif self.registration_start <= now < self.registration_end:
+                        self.status = 'Registration Open'
+                    elif self.registration_end <= now < self.start_date:
+                        self.status = 'Registration Closed'
+                    elif self.start_date <= now < self.end_date:
+                        self.status = 'Running'
+                    else:
+                        self.status = 'Completed'
+
+        super().save(*args, **kwargs)
+
