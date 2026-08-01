@@ -228,6 +228,25 @@ export default function MyTeam() {
     showToast('Invite link copied to clipboard!', 'success');
   };
 
+  const handleShareLink = async () => {
+    if (!team?.invite_code) return;
+    const inviteLink = `${window.location.origin}/join-team/${team.invite_code}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join team ${team.name}`,
+          text: `Join my team '${team.name}' in the hackathon!`,
+          url: inviteLink,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      navigator.clipboard.writeText(inviteLink);
+      showToast('Invite link copied to clipboard!', 'success');
+    }
+  };
+
   const handleAcceptInvite = async (inviteId) => {
     try {
       await api.post(`/team-invitations/${inviteId}/accept/`);
@@ -580,6 +599,13 @@ export default function MyTeam() {
                     className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 font-bold rounded-xl text-xs transition"
                   >
                     Copy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleShareLink}
+                    className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 font-bold rounded-xl text-xs transition"
+                  >
+                    Share
                   </button>
                 </div>
                 <p className="text-[10px] text-gray-400 font-normal leading-normal">
