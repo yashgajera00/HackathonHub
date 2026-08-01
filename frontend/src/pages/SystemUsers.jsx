@@ -34,11 +34,11 @@ export default function SystemUsers() {
   const toggleCreatePermission = async (userObj) => {
     const nextVal = !userObj.can_create_hackathon;
     try {
-      await api.patch(`/users/${userObj.id}/`, {
+      const response = await api.patch(`/users/${userObj.id}/`, {
         can_create_hackathon: nextVal
       });
       showToast(`Updated creation rights for ${userObj.username}.`, 'success');
-      fetchUsers();
+      setUsers(prev => prev.map(u => u.id === userObj.id ? { ...u, ...response.data } : u));
     } catch (e) {
       showToast('Failed to update permissions.', 'error');
     }
@@ -58,11 +58,11 @@ export default function SystemUsers() {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      await api.patch(`/users/${userObj.id}/`, {
+      const response = await api.patch(`/users/${userObj.id}/`, {
         is_active: nextVal
       });
       showToast(`Account status updated for ${userObj.username}.`, 'success');
-      fetchUsers();
+      setUsers(prev => prev.map(u => u.id === userObj.id ? { ...u, ...response.data } : u));
     } catch (e) {
       const errMsg = e.response?.data?.detail || 'Failed to update account status.';
       showToast(errMsg, 'error');
