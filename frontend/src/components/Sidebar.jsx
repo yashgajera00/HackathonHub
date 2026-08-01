@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHackathon } from '../context/HackathonContext';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Trophy, Calendar, Users, Megaphone, BookOpen, Award, UserCheck, QrCode,
   History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell
@@ -10,6 +10,7 @@ import {
 export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth();
   const { activeHackathon, activeHackathonRole, clearActiveHackathon } = useHackathon();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -21,13 +22,18 @@ export default function Sidebar({ isOpen, onClose }) {
         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
     }`;
 
+  const handleLeaveContext = () => {
+    clearActiveHackathon();
+    navigate('/');
+  };
+
   // Renders options when inside a Hackathon context
   const renderHackathonSidebar = () => (
     <div className="space-y-6">
       {/* Back button */}
       <div>
         <button
-          onClick={clearActiveHackathon}
+          onClick={handleLeaveContext}
           className="flex items-center space-x-2 text-xs font-semibold text-gray-400 hover:text-gray-600 uppercase tracking-wider px-3 transition"
         >
           <ChevronLeft size={14} />
