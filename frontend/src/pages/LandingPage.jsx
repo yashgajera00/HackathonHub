@@ -86,6 +86,7 @@ const FEATURED_HACKATHONS = [
 /* ─────────────────── Main Landing Page Component ─────────────────── */
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [heroTab, setHeroTab] = useState('leaderboard');
   const [openFaq, setOpenFaq] = useState(null);
@@ -98,6 +99,38 @@ export default function LandingPage() {
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const closeMobileMenu = (callback) => {
+    if (!mobileMenuOpen) {
+      if (typeof callback === 'function') callback();
+      return;
+    }
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      setMobileMenuOpen(false);
+      setIsClosing(false);
+      if (typeof callback === 'function') callback();
+    }, 280);
+  };
+
+  const handleNavClick = (e, id) => {
+    e.preventDefault();
+    const scrollToTarget = () => {
+      const element = document.querySelector(id);
+      if (element) {
+        const yOffset = -80;
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    };
+
+    if (mobileMenuOpen) {
+      closeMobileMenu(scrollToTarget);
+    } else {
+      scrollToTarget();
+    }
   };
 
   return (
@@ -127,11 +160,11 @@ export default function LandingPage() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
-              <a href="#events" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Browse Hackathons</a>
-              <a href="#features" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Features</a>
-              <a href="#workflow" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Workspaces</a>
-              <a href="#testimonials" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Testimonials</a>
-              <a href="#faq" className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">FAQ</a>
+              <a href="#events" onClick={(e) => handleNavClick(e, '#events')} className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Browse Hackathons</a>
+              <a href="#features" onClick={(e) => handleNavClick(e, '#features')} className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Features</a>
+              <a href="#workflow" onClick={(e) => handleNavClick(e, '#workflow')} className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Workspaces</a>
+              <a href="#testimonials" onClick={(e) => handleNavClick(e, '#testimonials')} className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">Testimonials</a>
+              <a href="#faq" onClick={(e) => handleNavClick(e, '#faq')} className="text-base font-medium text-slate-600 hover:text-blue-600 transition-colors">FAQ</a>
             </nav>
 
             {/* Action Buttons */}
@@ -139,14 +172,21 @@ export default function LandingPage() {
               <Link to="/login" className="px-4 py-2 text-base font-semibold text-slate-700 hover:text-blue-600 transition-colors">
                 Sign In
               </Link>
-              <Link to="/register" className="px-5 py-2.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-sm shadow-blue-600/20 transition-all hover:shadow-md">
+              <Link to="/register" className="px-5 py-2 text-base font-bold text-blue-600 hover:text-blue-700 bg-blue-50/70 hover:bg-blue-100/90 border-2 border-blue-600 hover:border-blue-700 rounded-xl transition-all shadow-2xs">
                 Get Started Free
               </Link>
             </div>
 
             {/* Mobile menu toggle */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => {
+                if (mobileMenuOpen) {
+                  closeMobileMenu();
+                } else {
+                  setIsClosing(false);
+                  setMobileMenuOpen(true);
+                }
+              }}
               className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
               aria-label="Toggle Menu"
             >
@@ -155,21 +195,83 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Mobile dropdown */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-3 shadow-lg">
-            <a href="#events" onClick={() => setMobileMenuOpen(false)} className="block text-base font-medium text-slate-700 hover:text-blue-600 py-1">Browse Hackathons</a>
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-base font-medium text-slate-700 hover:text-blue-600 py-1">Features</a>
-            <a href="#workflow" onClick={() => setMobileMenuOpen(false)} className="block text-base font-medium text-slate-700 hover:text-blue-600 py-1">Workspaces</a>
-            <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-base font-medium text-slate-700 hover:text-blue-600 py-1">Testimonials</a>
-            <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-base font-medium text-slate-700 hover:text-blue-600 py-1">FAQ</a>
-            <div className="pt-2 border-t border-slate-100 flex flex-col space-y-2">
-              <Link to="/login" className="w-full text-center py-2.5 text-base font-semibold text-slate-700 bg-slate-100 rounded-lg">Sign In</Link>
-              <Link to="/register" className="w-full text-center py-2.5 text-base font-semibold text-white bg-blue-600 rounded-lg">Get Started Free</Link>
-            </div>
-          </div>
-        )}
       </header>
+
+      {/* Mobile Right Slide-Over Drawer Sidebar — Clean White & Soft Indigo Light Theme (z-[100]) */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] lg:hidden flex justify-end">
+          {/* Backdrop overlay with soft blur */}
+          <div
+            className={`fixed inset-0 bg-slate-900/40 backdrop-blur-md ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+            onClick={() => closeMobileMenu()}
+          />
+
+          {/* Right Drawer Panel — Right to Left Slide-In & Left to Right Slide-Out Animation */}
+          <div className={`relative w-[285px] sm:w-[320px] h-full bg-white/95 backdrop-blur-2xl border-l border-slate-200/80 text-slate-900 shadow-2xl p-6 flex flex-col justify-between z-[101] ${isClosing ? 'animate-slide-out-right' : 'animate-slide-in-right'} overflow-y-auto`}>
+            
+            {/* Drawer Header */}
+            <div>
+              <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+                <Link to="/" onClick={() => closeMobileMenu()} className="flex items-center space-x-2">
+                  <span className="h-8 w-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold font-display text-sm shadow-sm shadow-blue-600/30">
+                    H
+                  </span>
+                  <span className="text-lg font-bold font-display text-slate-900">
+                    Hackathon<span className="text-blue-600">Hub</span>
+                  </span>
+                </Link>
+                <button
+                  onClick={() => closeMobileMenu()}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                  aria-label="Close Menu"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Nav Links Stack */}
+              <nav className="mt-6 space-y-1">
+                {[
+                  { label: 'Browse Hackathons', href: '#events' },
+                  { label: 'Features', href: '#features' },
+                  { label: 'Workspaces', href: '#workflow' },
+                  { label: 'Testimonials', href: '#testimonials' },
+                  { label: 'FAQ', href: '#faq' },
+                ].map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    className="flex items-center justify-between text-base font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50/80 border border-transparent hover:border-blue-100 px-4 py-3 rounded-xl transition-all group"
+                  >
+                    <span>{item.label}</span>
+                    <ChevronRight size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            {/* Drawer Footer Actions */}
+            <div className="pt-6 border-t border-slate-100 space-y-3 mt-auto">
+              <Link
+                to="/login"
+                onClick={() => closeMobileMenu()}
+                className="w-full py-3 text-center text-base font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 border border-slate-200/80 rounded-xl transition block"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => closeMobileMenu()}
+                className="w-full py-3 text-center text-base font-bold text-blue-600 bg-blue-50/70 hover:bg-blue-100/90 border-2 border-blue-600 hover:border-blue-700 rounded-xl transition block shadow-2xs"
+              >
+                Get Started Free
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ╔═══════════════════════════════════════════════╗
           ║                   HERO                        ║
@@ -756,16 +858,16 @@ export default function LandingPage() {
       {/* ╔═══════════════════════════════════════════════╗
           ║                 WHY US                        ║
           ╚═══════════════════════════════════════════════╝ */}
-      <section id="why-us" className="py-16 sm:py-24 bg-slate-50/70 border-y border-slate-200/60">
+      <section id="workflow" className="py-16 sm:py-24 bg-slate-50/70 border-y border-slate-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div>
               <span className="inline-flex items-center space-x-1.5 text-xs font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-md mb-3">
                 <Target size={14} />
-                <span>Why Choose HackathonHub</span>
+                <span>Unified Event Workspaces</span>
               </span>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-display text-slate-900 tracking-tight mb-4">
-                Less Administrative Work,<br />More Innovation
+                Workspaces Built for<br />Seamless Innovation
               </h2>
               <p className="text-base sm:text-lg text-slate-600 mb-6 leading-relaxed">
                 HackathonHub replaces fragmented spreadsheets, forms, and chat groups with a unified workspace built for seamless hackathons.
@@ -899,10 +1001,50 @@ export default function LandingPage() {
 
           <div className="space-y-3.5">
             {[
-              { q: 'Is HackathonHub free for participants?', a: 'Yes! Hackers can browse events, join teams, and submit projects completely free.' },
-              { q: 'How long does it take to create a hackathon?', a: 'Under 5 minutes. You can set rules, team sizes, schedule phases, and publish immediately.' },
-              { q: 'Can I manage multiple hackathons simultaneously?', a: 'Yes. Our context switcher lets you manage or participate in multiple hackathons seamlessly.' },
-              { q: 'How does live judging work?', a: 'Organizers add judges with custom scoring rubrics. Scores automatically compute onto the event leaderboard.' },
+              {
+                q: 'Is HackathonHub free for participants and hackers?',
+                a: `Yes! HackathonHub is 100% free for all developers, students, and participants globally. You can browse active hackathons, form or join teams, chat with teammates, submit repository links, and view live standings without any hidden fees or subscriptions. We are dedicated to supporting open tech innovation worldwide.`,
+              },
+              {
+                q: 'How long does it take an organizer to launch a hackathon?',
+                a: `Creating and publishing a complete hackathon on HackathonHub takes under 5 minutes from start to finish. Once you log in, you simply enter your event title, description, banner, team size constraints, and key schedule milestones. Our automated setup engine instantly creates a dedicated event landing microsite, a custom participant registration form, and a private judge evaluation portal. You can publish immediately or save as a draft to preview with your co-organizers before opening public registration.`,
+              },
+              {
+                q: 'How does the automated team formation, invite code, and request system work?',
+                a: `Our team formation system is designed to eliminate manual spreadsheet management for event organizers while making team discovery seamless for hackers:
+
+• Creating a Team: Any participant can create a team, set their team name, and specify looking-for roles (e.g. Frontend Dev, AI Specialist, UI Designer).
+• Shareable Invite Codes: Each team gets a unique 6-character invite code. Teammates can instantly join by typing this code in their dashboard.
+• Join Requests & Approvals: Solo hackers can submit join requests to open teams with custom introductory notes. Team leaders receive real-time notifications to review profiles and accept or decline requests.
+• Automated Size Enforcement: The system strictly enforces minimum and maximum team sizes defined by the organizer. Once a team reaches capacity, it automatically locks to prevent over-subscription.
+• In-App Team Workspace: Teammates get access to a private team workspace tab with submission tracking and contact links.`,
+              },
+              {
+                q: 'Can I manage or participate in multiple hackathons simultaneously?',
+                a: `Yes! Our platform architecture features a seamless workspace context switcher. From a single user account, you can serve as an Organizer for an AI event, a Judge for a Web3 hackathon, and a Participant in a Sustainability challenge. When you switch contexts in the navigation menu, your dashboard, active routes, and permissions automatically adapt to match your role for that specific event without requiring multiple logins.`,
+              },
+              {
+                q: 'How does the live judging portal, rubric scoring, and real-time leaderboard function?',
+                a: `HackathonHub provides a comprehensive, transparent judging pipeline tailored for virtual and in-person hackathons:
+
+• Custom Rubric Creation: Organizers can define custom criteria (e.g., Technical Execution 30%, Originality 30%, Design & UX 20%, Business Viability 20%) with specific min/max score ranges.
+• Dedicated Judge Accounts: Invited judges access an isolated judging portal where assigned team submissions are presented with video demos, pitch decks, and GitHub repositories.
+• Conflict Prevention & Anonymity: Judges can enter scores and private feedback notes without seeing other judges' evaluations until judging closes.
+• Automatic Score Computation: The system calculates weighted average scores, handles ties according to organizer rules, and generates final rank breakdowns.
+• Live & Deferred Leaderboards: Organizers can choose to publish leaderboard standings live during the event or reveal final winners during an award ceremony.`,
+              },
+              {
+                q: 'How does QR Code Gate Check-in work for venue entry?',
+                a: `Every registered participant gets a unique digital QR gate pass in their mobile dashboard. Venue staff use our built-in camera scanner to check in attendees at venue doors. The system updates live attendance metrics, prevents duplicate entries, and provides instant organizer reports.`,
+              },
+              {
+                q: 'Can organizers export event data and participant submission reports?',
+                a: `Yes! Event organizers have complete ownership of their event data. At any time during or after the hackathon, organizers can download full CSV or JSON reports containing participant registration info, team compositions, project repository URLs, demo video links, judge rubrics, and detailed score breakdowns. This makes post-event reporting, sponsor analytics, and prize distribution effortless.`,
+              },
+              {
+                q: 'What security measures and role permissions are enforced on the platform?',
+                a: `HackathonHub is built with enterprise-grade security powered by Django REST Framework and JWT authentication. We enforce strict Role-Based Access Control (RBAC) across Platform Owners, Organizers, Judges, and Hackers. All submission data and judge feedback are encrypted in transit and at rest, ensuring confidential entries remain protected until judging is officially published.`,
+              },
             ].map((item, i) => (
               <div
                 key={i}
@@ -922,7 +1064,7 @@ export default function LandingPage() {
                   />
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-5 pt-1 text-sm sm:text-base text-slate-600 leading-relaxed pl-10 border-t border-slate-100">
+                  <div className="px-5 pb-5 pt-2 text-sm sm:text-base text-slate-600 leading-relaxed pl-10 border-t border-slate-100 bg-slate-50/50">
                     {item.a}
                   </div>
                 )}
@@ -932,29 +1074,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ╔═══════════════════════════════════════════════╗
-          ║                 FINAL CTA                     ║
-          ╚═══════════════════════════════════════════════╝ */}
-      <section className="py-16 sm:py-20 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 sm:p-12 text-center text-white shadow-xl shadow-blue-600/20">
-            <h2 className="text-3xl sm:text-4xl font-extrabold font-display mb-3">
-              Ready to Host or Join a Hackathon?
-            </h2>
-            <p className="text-base sm:text-lg text-blue-100 max-w-xl mx-auto mb-6">
-              Create your account today and start building with thousands of innovators.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/register" className="w-full sm:w-auto px-7 py-3.5 text-base font-bold text-blue-600 bg-white hover:bg-blue-50 rounded-xl shadow-sm transition">
-                Get Started Free
-              </Link>
-              <Link to="/login" className="w-full sm:w-auto px-7 py-3.5 text-base font-semibold text-white border border-blue-400/80 rounded-xl hover:bg-blue-700 transition">
-                Sign In to Workspace
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* ╔═══════════════════════════════════════════════╗
           ║                  FOOTER                       ║
