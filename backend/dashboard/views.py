@@ -23,7 +23,11 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
             return ActivityLog.objects.none()
 
         if user.is_superuser:
-            return ActivityLog.objects.all().order_by('-timestamp')
+            queryset = ActivityLog.objects.all().order_by('-timestamp')
+            user_id = self.request.query_params.get('user_id')
+            if user_id:
+                queryset = queryset.filter(user_id=user_id)
+            return queryset
 
         hackathon_id = self.request.query_params.get('hackathon_id') or self.request.headers.get('X-Hackathon-Id')
         if hackathon_id:
@@ -63,7 +67,7 @@ class DashboardAnalyticsViewSet(viewsets.ViewSet):
         pending_registrations = Registration.objects.filter(status='Pending').count()
         
         # Recent user activity logs
-        recent_logs = ActivityLog.objects.all().order_by('-timestamp')[:5]
+        recent_logs = ActivityLog.objects.all().order_by('-timestamp')[:15]
         logs_serializer = ActivityLogSerializer(recent_logs, many=True)
 
         recent_users = CustomUser.objects.all().order_by('-date_joined')[:5]

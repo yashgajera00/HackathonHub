@@ -40,12 +40,12 @@ export default function EditHackathon() {
       return;
     }
     
-    // Helper to format date strings to datetime-local values
+    // Helper to format date strings to datetime-local values in UTC to prevent shifting
     const formatDate = (dateStr) => {
       if (!dateStr) return '';
       const date = new Date(dateStr);
       const pad = (num) => String(num).padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
     };
 
     setFormData({

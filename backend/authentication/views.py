@@ -42,6 +42,17 @@ class RegisterView(generics.CreateAPIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            username = request.data.get('username')
+            user = User.objects.filter(username=username).first()
+            if user:
+                log_activity(user, "User logged in")
+        return response
+
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 

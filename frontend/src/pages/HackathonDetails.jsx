@@ -239,11 +239,11 @@ export default function HackathonDetails() {
             <div className="space-y-2.5 text-xs font-semibold text-gray-700">
               <div className="flex items-center space-x-2">
                 <Calendar size={14} className="text-gray-400" />
-                <span>Starts: {new Date(activeHackathon.start_date).toLocaleString()}</span>
+                <span>Starts: {new Date(activeHackathon.start_date).toLocaleString('en-US', { timeZone: 'UTC' })}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar size={14} className="text-gray-400" />
-                <span>Ends: {new Date(activeHackathon.end_date).toLocaleString()}</span>
+                <span>Ends: {new Date(activeHackathon.end_date).toLocaleString('en-US', { timeZone: 'UTC' })}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin size={14} className="text-gray-400" />
@@ -402,7 +402,7 @@ export default function HackathonDetails() {
                         <h4 className="text-sm font-bold text-gray-800">{item.title}</h4>
                         <p className="text-xs text-gray-500 mt-1">{item.description}</p>
                         <div className="flex items-center space-x-4 mt-2 text-[10px] font-bold text-gray-400 uppercase">
-                          <span>{new Date(item.start_time).toLocaleString()} - {new Date(item.end_time).toLocaleTimeString()}</span>
+                          <span>{new Date(item.start_time).toLocaleString('en-US', { timeZone: 'UTC' })} - {new Date(item.end_time).toLocaleTimeString('en-US', { timeZone: 'UTC' })}</span>
                           {item.venue && <span>• {item.venue}</span>}
                         </div>
                       </div>
@@ -684,7 +684,7 @@ export default function HackathonDetails() {
                     <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
                       for successfully registering, checkin-in, and actively building innovative projects during the 
                       <span className="font-semibold text-slate-800"> {cert.hackathon_title} </span> 
-                      held between {new Date(cert.start_date).toLocaleDateString()} and {new Date(cert.end_date).toLocaleDateString()}.
+                      held between {new Date(cert.start_date).toLocaleDateString('en-US', { timeZone: 'UTC' })} and {new Date(cert.end_date).toLocaleDateString('en-US', { timeZone: 'UTC' })}.
                     </p>
 
                     <div className="flex justify-between items-center pt-8 max-w-md mx-auto text-[10px] text-slate-400 font-bold border-t border-slate-200/40">
@@ -694,7 +694,7 @@ export default function HackathonDetails() {
                       </div>
                       <div className="text-right space-y-1">
                         <p className="text-slate-600">ISSUE DATE</p>
-                        <p className="font-medium">{new Date(cert.issue_date).toLocaleDateString()}</p>
+                        <p className="font-medium">{new Date(cert.issue_date).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                       </div>
                     </div>
 

@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
+import Modal from '../components/Modal';
 import { Search, UserCheck, ShieldCheck, UserMinus, ShieldAlert } from 'lucide-react';
 
 export default function SystemUsers() {
@@ -13,6 +14,11 @@ export default function SystemUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
+  // User activity logs modal state
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userLogs, setUserLogs] = useState([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -71,6 +77,23 @@ export default function SystemUsers() {
     }
   };
 
+  const handleOpenUserLogs = async (userObj) => {
+    setSelectedUser(userObj);
+    setLoadingLogs(true);
+    setUserLogs([]);
+    try {
+      const response = await api.get('/activity-logs/', {
+        params: { user_id: userObj.id }
+      });
+      setUserLogs(response.data.results || response.data);
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to load user logs.', 'error');
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
   return (
     <div className="space-y-6 py-4 max-w-5xl mx-auto">
       <div>
@@ -123,7 +146,13 @@ export default function SystemUsers() {
                         )}
                         <div className="flex flex-col">
                           <span className="font-bold text-gray-900">{name}</span>
-                          <span className="text-[10px] text-gray-400 mt-0.5">{u.email}</span>
+                          <button
+                            onClick={() => handleOpenUserLogs(u)}
+                            className="text-[10px] text-blue-500 hover:text-blue-700 hover:underline font-semibold text-left transition mt-0.5"
+                            title="Click to view user activity logs"
+                          >
+                            {u.email}
+                          </button>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -177,6 +206,30 @@ export default function SystemUsers() {
           </div>
         )}
       </div>
+
+      <Modal 
+        isOpen={!!selectedUser} 
+        onClose={() => setSelectedUser(null)} 
+        title={`Activity Logs: ${selectedUser?.username}`}
+      >
+        {loadingLogs ? (
+          <div className="p-8 text-center text-gray-400 animate-pulse">Loading activity logs...</div>
+        ) : userLogs.length > 0 ? (
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+            {userLogs.map((log) => (
+              <div key={log.id} className="p-3 bg-gray-50 border border-gray-100/50 rounded-xl space-y-1">
+                <p className="text-xs text-gray-800 font-semibold">{log.action}</p>
+                {log.details && <p className="text-[10px] text-gray-400 leading-relaxed">{log.details}</p>}
+                <div className="text-[9px] font-bold text-gray-400 uppercase pt-0.5">
+                  {new Date(log.timestamp).toLocaleString('en-US', { timeZone: 'UTC' })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-gray-400 font-medium">No activity logged for this user.</div>
+        )}
+      </Modal>
     </div>
   );
 }
