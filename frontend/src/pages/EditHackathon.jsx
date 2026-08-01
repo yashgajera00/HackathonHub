@@ -17,6 +17,7 @@ export default function EditHackathon() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    publish_time: '',
     start_date: '',
     end_date: '',
     registration_start: '',
@@ -50,6 +51,7 @@ export default function EditHackathon() {
     setFormData({
       title: activeHackathon.title || '',
       description: activeHackathon.description || '',
+      publish_time: formatDate(activeHackathon.publish_time),
       start_date: formatDate(activeHackathon.start_date),
       end_date: formatDate(activeHackathon.end_date),
       registration_start: formatDate(activeHackathon.registration_start),
@@ -224,6 +226,18 @@ export default function EditHackathon() {
             <div className="border-t border-gray-100 md:col-span-2 my-2"></div>
 
             {/* Dates */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Publish Date & Time (Optional)</label>
+              <input
+                type="datetime-local"
+                name="publish_time"
+                value={formData.publish_time}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50/50 focus:bg-white transition"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">If set, the event will remain a Draft until this time, after which it will automatically publish.</p>
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Registration Start Date</label>
               <input

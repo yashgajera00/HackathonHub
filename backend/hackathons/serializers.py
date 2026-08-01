@@ -10,7 +10,7 @@ class HackathonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hackathon
         fields = (
-            'id', 'title', 'slug', 'description', 'banner', 'logo',
+            'id', 'title', 'slug', 'description', 'banner', 'logo', 'publish_time',
             'start_date', 'end_date', 'registration_start', 'registration_end',
             'venue', 'city', 'state', 'country', 'max_team_size', 'min_team_size',
             'status', 'created_by', 'created_by_username', 'created_at', 'updated_at', 'role',
@@ -51,6 +51,9 @@ class HackathonSerializer(serializers.ModelSerializer):
 
         if reg_end and start_date and reg_end > start_date:
             raise serializers.ValidationError({"registration_end": "Registration end date must not be after hackathon start date."})
+
+        if 'publish_time' in data and data['publish_time'] == '':
+            data['publish_time'] = None
 
         return data
 

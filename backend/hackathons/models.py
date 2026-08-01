@@ -17,6 +17,7 @@ class Hackathon(models.Model):
     description = models.TextField(blank=True, null=True)
     banner = models.ImageField(upload_to='hackathons/banners/', blank=True, null=True)
     logo = models.ImageField(upload_to='hackathons/logos/', blank=True, null=True)
+    publish_time = models.DateTimeField(blank=True, null=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     registration_start = models.DateTimeField()

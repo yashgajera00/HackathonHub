@@ -27,6 +27,25 @@ class HackathonViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return Hackathon.objects.none()
+
+        # Automatically update all hackathon statuses based on current timeline
+        from django.utils import timezone
+        now = timezone.now()
+        
+        # 1. Transition Draft to Published if publish_time has passed
+        Hackathon.objects.filter(
+            status='Draft',
+            publish_time__isnull=False,
+            publish_time__lte=now
+        ).update(status='Published')
+
+        # 2. Update other non-Draft, non-Cancelled statuses
+        base_q = ~Q(status__in=['Draft', 'Cancelled'])
+        Hackathon.objects.filter(base_q, registration_start__gt=now).update(status='Published')
+        Hackathon.objects.filter(base_q, registration_start__lte=now, registration_end__gt=now).update(status='Registration Open')
+        Hackathon.objects.filter(base_q, registration_end__lte=now, start_date__gt=now).update(status='Registration Closed')
+        Hackathon.objects.filter(base_q, start_date__lte=now, end_date__gt=now).update(status='Running')
+        Hackathon.objects.filter(base_q, end_date__lte=now).update(status='Completed')
             
         # Platform Owner sees all
         if user.is_superuser:
