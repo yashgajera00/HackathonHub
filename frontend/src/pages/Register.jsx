@@ -18,7 +18,6 @@ export default function Register() {
     phone: '',
     password: '',
     confirm_password: '',
-    can_create_hackathon: false,
   });
 
   const handleChange = (e) => {
@@ -177,7 +176,7 @@ export default function Register() {
                 </label>
                 <div className="mt-1 relative rounded-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-4 w-4 text-gray-400" />
+                     <Lock className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
                     id="password"
@@ -211,20 +210,6 @@ export default function Register() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="can_create_hackathon"
-                name="can_create_hackathon"
-                type="checkbox"
-                checked={formData.can_create_hackathon}
-                onChange={handleChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-sm"
-              />
-              <label htmlFor="can_create_hackathon" className="ml-2 block text-xs font-semibold text-gray-700 select-none cursor-pointer">
-                I want to organize and host hackathons (Request host privileges)
-              </label>
             </div>
 
             <div>
