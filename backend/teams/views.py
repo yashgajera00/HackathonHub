@@ -435,6 +435,8 @@ class TeamInvitationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
         invitation = get_object_or_404(TeamInvitation, pk=pk, invitee=request.user)
+        if invitation.status == 'Accepted':
+            return Response(TeamInvitationSerializer(invitation).data)
         if invitation.status != 'Pending':
             return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -492,6 +494,8 @@ class TeamInvitationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         invitation = get_object_or_404(TeamInvitation, pk=pk, invitee=request.user)
+        if invitation.status == 'Rejected':
+            return Response(TeamInvitationSerializer(invitation).data)
         if invitation.status != 'Pending':
             return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -587,6 +591,9 @@ class TeamJoinRequestViewSet(viewsets.ModelViewSet):
         if team.created_by != request.user and not request.user.is_superuser:
             return Response({"detail": "Only the Team Leader can accept join requests."}, status=status.HTTP_403_FORBIDDEN)
 
+        if join_req.status == 'Accepted':
+            return Response(TeamJoinRequestSerializer(join_req).data)
+
         if join_req.status != 'Pending':
             return Response({"detail": "Request is not pending."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -653,6 +660,9 @@ class TeamJoinRequestViewSet(viewsets.ModelViewSet):
         # Verify requester is the team leader
         if team.created_by != request.user and not request.user.is_superuser:
             return Response({"detail": "Only the Team Leader can reject join requests."}, status=status.HTTP_403_FORBIDDEN)
+
+        if join_req.status == 'Rejected':
+            return Response(TeamJoinRequestSerializer(join_req).data)
 
         if join_req.status != 'Pending':
             return Response({"detail": "Request is not pending."}, status=status.HTTP_400_BAD_REQUEST)
