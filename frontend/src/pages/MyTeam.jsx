@@ -33,6 +33,7 @@ export default function MyTeam() {
   const [joinTeamName, setJoinTeamName] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinRequests, setJoinRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
 
   useEffect(() => {
     if (activeHackathon) {
@@ -77,12 +78,36 @@ export default function MyTeam() {
         setJoinRequests([]);
         // If not in team, fetch pending team invitations sent to this user
         fetchPendingInvitations(silent);
+        fetchSentRequests(silent);
       }
     } catch (e) {
       console.error(e);
       if (!silent) showToast('Failed to load team details.', 'error');
     } finally {
       if (!silent) setLoading(false);
+    }
+  };
+
+  const fetchSentRequests = async (silent = false) => {
+    try {
+      const response = await api.get('/team-join-requests/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      const reqs = response.data.results || response.data;
+      setSentRequests(reqs.filter(r => r.status === 'Pending'));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCancelRequest = async (requestId) => {
+    try {
+      await api.delete(`/team-join-requests/${requestId}/`);
+      showToast('Join request cancelled.', 'success');
+      setSentRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to cancel join request.', 'error');
     }
   };
 
@@ -130,6 +155,7 @@ export default function MyTeam() {
       });
       showToast(`Join request sent to the leader of team '${joinTeamName}'!`, 'success');
       setJoinTeamName('');
+      fetchSentRequests();
     } catch (err) {
       console.error(err);
       showToast(err.response?.data?.detail || 'Failed to send join request.', 'error');
@@ -437,6 +463,36 @@ export default function MyTeam() {
                       Decline
                     </button>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sent Join Requests */}
+        {sentRequests.length > 0 && (
+          <div className="space-y-3 mt-6">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sent Join Requests ({sentRequests.length})</h3>
+            <div className="grid grid-cols-1 gap-4">
+              {sentRequests.map((req) => (
+                <div key={req.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-2xs flex items-center justify-between animate-fade-in">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                      <Users size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">Requested to join team: <span className="text-blue-600">{req.team_name}</span></h4>
+                      <span className="px-2 py-0.5 rounded-full font-bold text-[9px] bg-amber-50 text-amber-800 border border-amber-100 mt-1.5 inline-block">
+                        Pending Approval
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleCancelRequest(req.id)}
+                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold border border-rose-100 rounded-lg text-xs transition"
+                  >
+                    Cancel Request
+                  </button>
                 </div>
               ))}
             </div>
