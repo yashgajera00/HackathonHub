@@ -221,7 +221,7 @@ export default function SystemUsers() {
                 <p className="text-xs text-gray-800 font-semibold">{log.action}</p>
                 {log.details && <p className="text-[10px] text-gray-400 leading-relaxed">{log.details}</p>}
                 <div className="text-[9px] font-bold text-gray-400 uppercase pt-0.5">
-                  {new Date(log.timestamp).toLocaleString('en-US', { timeZone: 'UTC' })}
+                  {new Date(log.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })}
                 </div>
               </div>
             ))}

@@ -98,7 +98,7 @@ export default function SystemDashboard() {
                     <p className="text-xs text-gray-800 font-semibold">{log.action}</p>
                     {log.details && <p className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">{log.details}</p>}
                     <span className="text-[9px] font-bold text-gray-400 uppercase mt-1 inline-block">
-                      {log.user_username} • {new Date(log.timestamp).toLocaleString()}
+                      {log.user_username} • {new Date(log.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })}
                     </span>
                   </div>
                 </div>
