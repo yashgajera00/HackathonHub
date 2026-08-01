@@ -308,6 +308,16 @@ export default function MyTeam() {
     }
   };
 
+  if (!activeHackathon) {
+    return (
+      <div className="max-w-md mx-auto py-12 text-center space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-xs text-gray-500 text-xs font-semibold">
+          Please select a hackathon from the header menu to view your team details.
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div className="h-60 bg-white border animate-pulse rounded-2xl"></div>;
   }
