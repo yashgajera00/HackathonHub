@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash } from 'lucide-react';
 
 export default function MyTeam() {
   const { activeHackathon } = useHackathon();
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
 
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -135,7 +137,7 @@ export default function MyTeam() {
   };
 
   const handleDeleteTeam = async () => {
-    if (!window.confirm('Are you sure you want to delete this team? This action is permanent and will remove all members.')) {
+    if (!(await confirm('Are you sure you want to delete this team? This action is permanent and will remove all members.', 'Delete Team'))) {
       return;
     }
     try {
@@ -218,7 +220,7 @@ export default function MyTeam() {
   };
 
   const handleSubmitTeam = async () => {
-    if (!window.confirm('Are you sure you want to submit your team? You will not be able to modify the roster or deliverables until review is complete.')) {
+    if (!(await confirm('Are you sure you want to submit your team? You will not be able to modify the roster or deliverables until review is complete.', 'Submit Team'))) {
       return;
     }
     setSubmittingTeam(true);
@@ -235,7 +237,7 @@ export default function MyTeam() {
   };
 
   const handleLeaveTeam = async () => {
-    if (!window.confirm('Are you sure you want to leave this team? If you are the only member, the team will be deleted.')) {
+    if (!(await confirm('Are you sure you want to leave this team? If you are the only member, the team will be deleted.', 'Leave Team'))) {
       return;
     }
     try {
@@ -249,7 +251,7 @@ export default function MyTeam() {
   };
 
   const handleKick = async (memberUserId, memberName) => {
-    if (!window.confirm(`Kick ${memberName} from the team?`)) return;
+    if (!(await confirm(`Kick ${memberName} from the team?`, 'Remove Team Member'))) return;
     try {
       await api.post(`/teams/${team.id}/kick_member/`, { user_id: memberUserId });
       showToast('Member removed.', 'success');

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { UserPlus, Trash2, CheckCircle, Clock, Trash, RefreshCw, X } from 'lucide-react';
 
 export default function MembersList() {
   const { activeHackathon } = useHackathon();
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
 
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,7 @@ export default function MembersList() {
   };
 
   const handleRemove = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to remove ${name} from this hackathon?`)) return;
+    if (!(await confirm(`Are you sure you want to remove ${name} from this hackathon?`, 'Remove Member'))) return;
     try {
       await api.post(`/memberships/${id}/remove_member/`);
       showToast('Member removed successfully.', 'success');

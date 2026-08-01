@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { useHackathon } from '../context/HackathonContext';
 import { useNavigate } from 'react-router-dom';
 import { Settings, RefreshCw, Trash2 } from 'lucide-react';
 
 export default function EditHackathon() {
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const { activeHackathon, refreshHackathonDetails, clearActiveHackathon } = useHackathon();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -104,7 +106,7 @@ export default function EditHackathon() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you absolutely sure you want to delete this hackathon? This action is irreversible and deletes all teams, members, and scores!")) {
+    if (!(await confirm("Are you absolutely sure you want to delete this hackathon? This action is irreversible and deletes all teams, members, and scores!", "Delete Hackathon"))) {
       return;
     }
 

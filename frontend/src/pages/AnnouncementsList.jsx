@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { Megaphone, Trash2, Plus, RefreshCw } from 'lucide-react';
@@ -8,16 +9,13 @@ import { Megaphone, Trash2, Plus, RefreshCw } from 'lucide-react';
 export default function AnnouncementsList() {
   const { activeHackathon, activeHackathonRole } = useHackathon();
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
 
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ title: '', content: '' });
   const [submitting, setSubmitting] = useState(false);
-
-  if (activeHackathon && activeHackathonRole === 'Participant' && activeHackathon?.active_team_status !== 'Approved') {
-    return <Navigate to="/my-team" replace />;
-  }
 
   useEffect(() => {
     if (activeHackathon) {
@@ -30,6 +28,10 @@ export default function AnnouncementsList() {
       return () => clearInterval(interval);
     }
   }, [activeHackathon]);
+
+  if (activeHackathon && activeHackathonRole === 'Participant' && activeHackathon?.active_team_status !== 'Approved') {
+    return <Navigate to="/my-team" replace />;
+  }
 
   const fetchAnnouncements = async (silent = false) => {
     try {
@@ -67,7 +69,7 @@ export default function AnnouncementsList() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this announcement?')) return;
+    if (!(await confirm('Delete this announcement?', 'Delete Announcement'))) return;
     try {
       await api.delete(`/announcements/${id}/`);
       showToast('Announcement deleted.', 'success');

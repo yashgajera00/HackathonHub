@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HackathonProvider, useHackathon } from './context/HackathonContext';
 import { ToastProvider } from './context/ToastContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 
 // Components
 import Navbar from './components/Navbar';
@@ -124,61 +125,63 @@ function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
-        <AuthProvider>
-          <HackathonProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+        <ConfirmProvider>
+          <AuthProvider>
+            <HackathonProvider>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Protected Workspace Layout */}
-              <Route element={<ProtectedLayout />}>
-                {/* Home resolves based on selected hackathon context */}
-                <Route path="/" element={<HackathonHomeRouter />} />
-                
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/notifications" element={<NotificationsList />} />
-                <Route path="/create-hackathon" element={<CreateHackathon />} />
-                
-                {/* General Hackathon routes */}
-                <Route path="/announcements" element={<AnnouncementsList />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/my-team" element={<MyTeam />} />
+                {/* Protected Workspace Layout */}
+                <Route element={<ProtectedLayout />}>
+                  {/* Home resolves based on selected hackathon context */}
+                  <Route path="/" element={<HackathonHomeRouter />} />
+                  
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/notifications" element={<NotificationsList />} />
+                  <Route path="/create-hackathon" element={<CreateHackathon />} />
+                  
+                  {/* General Hackathon routes */}
+                  <Route path="/announcements" element={<AnnouncementsList />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route path="/my-team" element={<MyTeam />} />
 
-                {/* Organizer Management Routes */}
-                <Route element={<HackathonOrganizerRoute />}>
-                  <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-                  <Route path="/edit-hackathon" element={<EditHackathon />} />
-                  <Route path="/members" element={<MembersList />} />
-                  <Route path="/teams" element={<TeamsList />} />
+                  {/* Organizer Management Routes */}
+                  <Route element={<HackathonOrganizerRoute />}>
+                    <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+                    <Route path="/edit-hackathon" element={<EditHackathon />} />
+                    <Route path="/members" element={<MembersList />} />
+                    <Route path="/teams" element={<TeamsList />} />
+                  </Route>
+
+                  {/* Volunteer/Staff Management Routes */}
+                  <Route element={<HackathonVolunteerRoute />}>
+                    <Route path="/registrations" element={<RegistrationsList />} />
+                    <Route path="/qr-checkin" element={<QRCheckin />} />
+                  </Route>
+
+                  {/* Judge Routes */}
+                  <Route element={<HackathonJudgeRoute />}>
+                    <Route path="/judging" element={<JudgingPortal />} />
+                  </Route>
+
+                  {/* Platform Owner Routes */}
+                  <Route element={<PlatformOwnerRoute />}>
+                    <Route path="/system-dashboard" element={<SystemDashboard />} />
+                    <Route path="/system-users" element={<SystemUsers />} />
+                  </Route>
                 </Route>
 
-                {/* Volunteer/Staff Management Routes */}
-                <Route element={<HackathonVolunteerRoute />}>
-                  <Route path="/registrations" element={<RegistrationsList />} />
-                  <Route path="/qr-checkin" element={<QRCheckin />} />
-                </Route>
-
-                {/* Judge Routes */}
-                <Route element={<HackathonJudgeRoute />}>
-                  <Route path="/judging" element={<JudgingPortal />} />
-                </Route>
-
-                {/* Platform Owner Routes */}
-                <Route element={<PlatformOwnerRoute />}>
-                  <Route path="/system-dashboard" element={<SystemDashboard />} />
-                  <Route path="/system-users" element={<SystemUsers />} />
-                </Route>
-              </Route>
-
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </HackathonProvider>
-        </AuthProvider>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </HackathonProvider>
+          </AuthProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </BrowserRouter>
   );

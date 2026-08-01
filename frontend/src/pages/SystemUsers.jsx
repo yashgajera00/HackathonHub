@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import { useConfirm } from '../context/ConfirmContext';
 import { Search, UserCheck, ShieldCheck, UserMinus, ShieldAlert } from 'lucide-react';
 
 export default function SystemUsers() {
   const { showToast } = useToast();
   const { user } = useAuth();
+  const { confirm } = useConfirm();
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export default function SystemUsers() {
       ? `Activate account for ${userObj.username}?`
       : `Suspend account for ${userObj.username}? Suspended users cannot login or request tokens.`;
     
-    if (!window.confirm(confirmMsg)) return;
+    if (!(await confirm(confirmMsg, 'Confirm Suspension Toggle'))) return;
 
     try {
       const response = await api.patch(`/users/${userObj.id}/`, {

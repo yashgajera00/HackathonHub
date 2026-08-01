@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { Search, UserCheck, UserX, Check, Scan, SearchIcon, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
@@ -212,6 +213,7 @@ export default function RegistrationsList() {
 
 const RegistrationRow = React.memo(({ r, hasEditRights, isOrganizer, onStatusChange }) => {
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const [actionLoading, setActionLoading] = useState(false);
   const userObj = r.user_details || {};
   const fullName = `${userObj.first_name || ''} ${userObj.last_name || ''}`.trim() || userObj.username;
@@ -231,7 +233,7 @@ const RegistrationRow = React.memo(({ r, hasEditRights, isOrganizer, onStatusCha
   };
 
   const handleReject = async () => {
-    if (!window.confirm(`Are you sure you want to reject registration for ${fullName}?`)) return;
+    if (!(await confirm(`Are you sure you want to reject registration for ${fullName}?`, 'Reject Registration'))) return;
     try {
       setActionLoading(true);
       const response = await api.post(`/registrations/${r.id}/reject/`);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { 
   Calendar, MapPin, Users, Award, BookOpen, Clock, Plus, Trash2, 
@@ -11,6 +12,7 @@ import { QRCodeSVG } from 'qrcode.react';
 export default function HackathonDetails() {
   const { activeHackathon, activeHackathonRole } = useHackathon();
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
   
   const [activeTab, setActiveTab] = useState('schedule');
   const [schedule, setSchedule] = useState([]);
@@ -168,7 +170,7 @@ export default function HackathonDetails() {
   };
 
   const handleDeleteSchedule = async (id) => {
-    if (!window.confirm('Delete this schedule item?')) return;
+    if (!(await confirm('Delete this schedule item?', 'Delete Schedule Item'))) return;
     try {
       await api.delete(`/schedules/${id}/`);
       showToast('Schedule item deleted.', 'success');
@@ -179,7 +181,7 @@ export default function HackathonDetails() {
   };
 
   const handleDeleteRule = async (id) => {
-    if (!window.confirm('Delete this rule?')) return;
+    if (!(await confirm('Delete this rule?', 'Delete Rule'))) return;
     try {
       await api.delete(`/rules/${id}/`);
       showToast('Rule deleted.', 'success');
