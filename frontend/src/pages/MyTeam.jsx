@@ -570,14 +570,25 @@ export default function MyTeam() {
                 placeholder="Invite username"
               />
             </div>
-            <button
-              type="submit"
-              disabled={inviting}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
-            >
-              {inviting && <RefreshCw size={12} className="animate-spin" />}
-              <span>Send Team Invitation</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="submit"
+                disabled={inviting}
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center justify-center space-x-1"
+              >
+                {inviting && <RefreshCw size={12} className="animate-spin" />}
+                <span>Send Team Invitation</span>
+              </button>
+              {team?.invite_code && (
+                <button
+                  type="button"
+                  onClick={handleShareLink}
+                  className="flex-1 py-2 border border-blue-200 hover:border-blue-300 text-blue-600 font-bold rounded-xl text-xs transition flex items-center justify-center bg-blue-50/20 hover:bg-blue-50/50"
+                >
+                  <span>Share Invite Link</span>
+                </button>
+              )}
+            </div>
           </form>
 
           {team?.invite_code && (
