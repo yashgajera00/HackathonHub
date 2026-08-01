@@ -64,10 +64,10 @@ class TeamViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Join request to this team is already pending."}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            join_req = TeamJoinRequest.objects.create(
+            join_req, created = TeamJoinRequest.objects.update_or_create(
                 team=team,
                 requester=request.user,
-                status='Pending'
+                defaults={'status': 'Pending'}
             )
             
             log_activity(
@@ -541,11 +541,11 @@ class TeamInvitationViewSet(viewsets.ModelViewSet):
         if TeamJoinRequest.objects.filter(team=team, requester=request.user, status='Pending').exists():
             return Response({"detail": "Join request to this team is already pending."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create join request
-        join_req = TeamJoinRequest.objects.create(
+        # Create or update join request
+        join_req, created = TeamJoinRequest.objects.update_or_create(
             team=team,
             requester=request.user,
-            status='Pending'
+            defaults={'status': 'Pending'}
         )
 
         # Notify team leader
