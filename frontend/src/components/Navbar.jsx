@@ -82,12 +82,12 @@ export default function Navbar({ onToggleSidebar }) {
   const handleHackathonChange = (id) => {
     selectHackathon(id);
     setShowDropdown(false);
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -104,7 +104,7 @@ export default function Navbar({ onToggleSidebar }) {
             <Menu size={20} />
           </button>
         )}
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/dashboard" className="flex items-center space-x-2">
           <span className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold font-display">H</span>
           <span className="hidden sm:inline text-xl font-bold font-display tracking-tight text-gray-900">Hackathon<span className="text-blue-600">Hub</span></span>
         </Link>

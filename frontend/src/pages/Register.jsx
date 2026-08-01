@@ -39,7 +39,7 @@ export default function Register() {
       setLoading(true);
       await register(formData);
       showToast('Registration successful! Welcome.', 'success');
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       const errors = err.response?.data;

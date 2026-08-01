@@ -36,7 +36,7 @@ export default function EditHackathon() {
 
   useEffect(() => {
     if (!activeHackathon) {
-      navigate('/');
+      navigate('/dashboard');
       return;
     }
     
@@ -111,7 +111,7 @@ export default function EditHackathon() {
       
       showToast('Hackathon updated successfully!', 'success');
       await refreshHackathonDetails();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       const errors = err.response?.data;
@@ -137,7 +137,7 @@ export default function EditHackathon() {
       await api.delete(`/hackathons/${activeHackathon.id}/`);
       showToast('Hackathon deleted successfully.', 'success');
       clearActiveHackathon();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       showToast('Failed to delete hackathon.', 'error');
@@ -382,7 +382,7 @@ export default function EditHackathon() {
           <div className="flex justify-end pt-6 border-t border-gray-100 space-x-3">
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="py-2.5 px-6 border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition"
             >
               Cancel

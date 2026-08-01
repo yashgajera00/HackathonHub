@@ -37,11 +37,11 @@ export default function JoinTeam() {
         // but redirecting to /my-team will trigger context reload.
         // Let's delay redirect slightly so user sees success.
         setTimeout(() => {
-          navigate('/');
+          navigate('/dashboard');
         }, 1500);
       } else {
         setTimeout(() => {
-          navigate('/');
+          navigate('/dashboard');
         }, 1500);
       }
     } catch (err) {
@@ -91,7 +91,7 @@ export default function JoinTeam() {
             
             <div className="pt-4 flex flex-col space-y-2">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard')}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center space-x-1"
               >
                 <span>Go to Dashboard</span>

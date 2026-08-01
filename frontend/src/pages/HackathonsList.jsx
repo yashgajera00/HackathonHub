@@ -103,7 +103,7 @@ export default function HackathonsList() {
 
   const handleEnterDashboard = (hackathonId) => {
     selectHackathon(hackathonId);
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (

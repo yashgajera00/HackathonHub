@@ -61,7 +61,7 @@ export default function Profile() {
 
       await updateProfile(submissionData);
       showToast('Profile updated successfully!', 'success');
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       showToast('Failed to update profile.', 'error');

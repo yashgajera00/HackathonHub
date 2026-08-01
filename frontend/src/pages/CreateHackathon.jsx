@@ -57,7 +57,7 @@ export default function CreateHackathon() {
       showToast('Hackathon created successfully!', 'success');
       // Automatically select this hackathon
       selectHackathon(response.data.id);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       const errors = err.response?.data;
@@ -275,7 +275,7 @@ export default function CreateHackathon() {
           <div className="flex justify-end pt-6 border-t border-gray-100 space-x-3">
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="py-2.5 px-6 border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition"
             >
               Cancel

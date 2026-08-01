@@ -24,7 +24,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const handleLeaveContext = () => {
     clearActiveHackathon();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   // Renders options when inside a Hackathon context
@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
         {(activeHackathonRole !== 'Participant' || activeHackathon?.active_team_status === 'Approved') && (
           <>
-            <NavLink to="/" end className={navLinkClass}>
+            <NavLink to="/dashboard" end className={navLinkClass}>
               <Calendar size={18} />
               <span>Details & Schedule</span>
             </NavLink>
@@ -185,7 +185,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
           General Menu
         </div>
-        <NavLink to="/" end className={navLinkClass}>
+        <NavLink to="/dashboard" end className={navLinkClass}>
           <Trophy size={18} />
           <span>Discover Hackathons</span>
         </NavLink>

@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -33,6 +34,20 @@ import JudgingPortal from './pages/JudgingPortal';
 import SystemDashboard from './pages/SystemDashboard';
 import SystemUsers from './pages/SystemUsers';
 import OrganizerDashboard from './pages/OrganizerDashboard';
+
+// Guest Route: redirects logged-in users to dashboard
+const GuestRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent animate-spin rounded-full"></div>
+      </div>
+    );
+  }
+  if (user) return <Navigate to="/dashboard" replace />;
+  return children;
+};
 
 // Protected Layout: Verifies auth, sets up Layout with Navbar and Sidebar
 const ProtectedLayout = () => {
@@ -70,7 +85,7 @@ const ProtectedLayout = () => {
 const PlatformOwnerRoute = () => {
   const { user } = useAuth();
   if (!user || !user.is_superuser) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <Outlet />;
 };
@@ -82,7 +97,7 @@ const HackathonOrganizerRoute = () => {
   
   if (user?.is_superuser) return <Outlet />;
   if (activeHackathonRole !== 'Organizer') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <Outlet />;
 };
@@ -94,7 +109,7 @@ const HackathonVolunteerRoute = () => {
   
   if (user?.is_superuser) return <Outlet />;
   if (activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <Outlet />;
 };
@@ -106,7 +121,7 @@ const HackathonJudgeRoute = () => {
   
   if (user?.is_superuser) return <Outlet />;
   if (activeHackathonRole !== 'Judge') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <Outlet />;
 };
@@ -131,16 +146,19 @@ function App() {
           <AuthProvider>
             <HackathonProvider>
               <Routes>
-                {/* Public Routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+                {/* Public Landing Page */}
+                <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
+
+                {/* Public Auth Routes */}
+                <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+                <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
 
                 {/* Protected Workspace Layout */}
                 <Route element={<ProtectedLayout />}>
                   {/* Home resolves based on selected hackathon context */}
-                  <Route path="/" element={<HackathonHomeRouter />} />
+                  <Route path="/dashboard" element={<HackathonHomeRouter />} />
                   
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
