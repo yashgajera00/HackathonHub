@@ -24,6 +24,7 @@ import RegistrationsList from './pages/RegistrationsList';
 import MembersList from './pages/MembersList';
 import TeamsList from './pages/TeamsList';
 import MyTeam from './pages/MyTeam';
+import JoinTeam from './pages/JoinTeam';
 import AnnouncementsList from './pages/AnnouncementsList';
 import Leaderboard from './pages/Leaderboard';
 import NotificationsList from './pages/NotificationsList';
@@ -48,7 +49,8 @@ const ProtectedLayout = () => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const currentPath = window.location.pathname + window.location.search;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(currentPath)}`} replace />;
   }
 
   return (
@@ -149,6 +151,7 @@ function App() {
                   <Route path="/announcements" element={<AnnouncementsList />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/my-team" element={<MyTeam />} />
+                  <Route path="/join-team/:inviteCode" element={<JoinTeam />} />
 
                   {/* Organizer Management Routes */}
                   <Route element={<HackathonOrganizerRoute />}>

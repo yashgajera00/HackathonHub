@@ -17,8 +17,15 @@ class Team(models.Model):
     project_submission_link = models.URLField(blank=True, null=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_teams')
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+    invite_code = models.CharField(max_length=64, unique=True, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.invite_code:
+            import uuid
+            self.invite_code = uuid.uuid4().hex
+        super().save(*args, **kwargs)
 
     class Meta:
         constraints = [

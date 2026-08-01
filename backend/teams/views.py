@@ -34,6 +34,66 @@ class TeamViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def join_by_invite_code(self, request):
+        invite_code = request.data.get('invite_code')
+        if not invite_code:
+            return Response({"detail": "invite_code is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        team = Team.objects.filter(invite_code=invite_code).first()
+        if not team:
+            return Response({"detail": "Invalid invite code or link."}, status=status.HTTP_404_NOT_FOUND)
+            
+        if team.status in ['Submitted', 'Approved']:
+            return Response({"detail": "Cannot join a submitted or approved team."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        max_size = team.hackathon.max_team_size
+        if team.members.count() >= max_size:
+            return Response({"detail": "This team is already full."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if TeamMember.objects.filter(hackathon=team.hackathon, user=request.user).exists():
+            return Response({"detail": "You are already a member of a team in this hackathon."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        from registrations.models import Registration
+        reg = Registration.objects.filter(hackathon=team.hackathon, user=request.user, status='Approved').first()
+        if not reg:
+            return Response({"detail": "You must be registered and approved in this hackathon to join a team."}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            TeamMember.objects.create(
+                team=team,
+                user=request.user,
+                role='Member',
+                hackathon=team.hackathon
+            )
+            
+            TeamInvitation.objects.filter(
+                invitee=request.user,
+                team__hackathon=team.hackathon,
+                status='Pending'
+            ).update(status='Rejected')
+
+            TeamJoinRequest.objects.filter(
+                requester=request.user,
+                team__hackathon=team.hackathon,
+                status='Pending'
+            ).update(status='Rejected')
+            
+            log_activity(
+                request.user,
+                "Joined team via link",
+                hackathon=team.hackathon,
+                details=f"Joined team: {team.name} directly via invite link"
+            )
+            
+            Notification.objects.create(
+                user=team.created_by,
+                title="New Team Member Joined",
+                message=f"{request.user.username} joined your team '{team.name}' via invite link."
+            )
+            
+        return Response({"detail": f"Successfully joined team '{team.name}'!", "team_id": team.id})
+
     def get_permissions(self):
         if self.action in ['create', 'leave', 'submit_project']:
             # Must be a participant or organizer

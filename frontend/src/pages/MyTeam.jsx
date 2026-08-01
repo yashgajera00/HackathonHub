@@ -221,6 +221,13 @@ export default function MyTeam() {
     }
   };
 
+  const handleCopyLink = () => {
+    if (!team?.invite_code) return;
+    const inviteLink = `${window.location.origin}/join-team/${team.invite_code}`;
+    navigator.clipboard.writeText(inviteLink);
+    showToast('Invite link copied to clipboard!', 'success');
+  };
+
   const handleAcceptInvite = async (inviteId) => {
     try {
       await api.post(`/team-invitations/${inviteId}/accept/`);
@@ -543,6 +550,34 @@ export default function MyTeam() {
               <span>Send Team Invitation</span>
             </button>
           </form>
+
+          {team?.invite_code && (
+            <>
+              <div className="border-t border-gray-100 my-4"></div>
+              
+              <div className="space-y-2 text-xs font-semibold text-gray-400">
+                <span className="block text-[10px] uppercase tracking-wider">Invite via Link</span>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/join-team/${team.invite_code}`}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-xl text-xs bg-gray-50 focus:outline-none text-gray-500 font-mono select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 font-bold rounded-xl text-xs transition"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-400 font-normal leading-normal">
+                  Share this link with other registered participants. Opening the link will immediately join them to your team.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       )}
 

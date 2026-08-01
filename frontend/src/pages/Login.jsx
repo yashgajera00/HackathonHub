@@ -23,7 +23,9 @@ export default function Login() {
       setLoading(true);
       await login(username, password);
       showToast('Welcome back!', 'success');
-      navigate('/');
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      navigate(redirect || '/');
     } catch (err) {
       console.error(err);
       showToast(err.response?.data?.detail || 'Invalid username or password.', 'error');
