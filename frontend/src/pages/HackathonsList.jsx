@@ -228,7 +228,7 @@ export default function HackathonsList() {
                   <div className="space-y-1.5 text-xs text-gray-500 font-medium">
                     <div className="flex items-center space-x-2">
                       <Calendar size={14} className="text-gray-400" />
-                      <span>{new Date(h.start_date).toLocaleDateString('en-US', { timeZone: 'UTC' })} - {new Date(h.end_date).toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
+                      <span>{new Date(h.start_date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' })} - {new Date(h.end_date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' })}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <MapPin size={14} className="text-gray-400" />

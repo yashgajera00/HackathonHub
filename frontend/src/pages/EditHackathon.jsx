@@ -40,12 +40,32 @@ export default function EditHackathon() {
       return;
     }
     
-    // Helper to format date strings to datetime-local values in UTC to prevent shifting
+    // Helper to format date strings to datetime-local values in Asia/Kolkata timezone
     const formatDate = (dateStr) => {
       if (!dateStr) return '';
       const date = new Date(dateStr);
-      const pad = (num) => String(num).padStart(2, '0');
-      return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+      try {
+        const formatter = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        const parts = formatter.formatToParts(date);
+        const year = parts.find(p => p.type === 'year').value;
+        const month = parts.find(p => p.type === 'month').value;
+        const day = parts.find(p => p.type === 'day').value;
+        const hour = parts.find(p => p.type === 'hour').value;
+        const minute = parts.find(p => p.type === 'minute').value;
+        return `${year}-${month}-${day}T${hour}:${minute}`;
+      } catch (err) {
+        console.error(err);
+        const pad = (num) => String(num).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
     };
 
     setFormData({
