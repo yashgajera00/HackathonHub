@@ -211,7 +211,7 @@ export default function TeamChat({ teamId, teamName }) {
           messages.map((msg, index) => {
             const isMe = msg.sender === user?.id || msg.sender_username === user?.username;
             const prevMsg = index > 0 ? messages[index - 1] : null;
-            const isSameSender = prevMsg && prevMsg.sender === msg.sender && !msg.reply_to_details && (new Date(msg.created_at) - new Date(prevMsg.created_at) < 5 * 60 * 1000);
+            const isSameSender = prevMsg && (prevMsg.sender === msg.sender || (prevMsg.sender_username && prevMsg.sender_username === msg.sender_username)) && !msg.reply_to_details;
 
             return (
               <div
