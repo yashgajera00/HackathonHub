@@ -584,15 +584,10 @@ export default function MyTeam() {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {isCheckedIn ? (
+                    {isCheckedIn && (
                       <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/60 flex items-center space-x-1">
                         <CheckCircle2 size={10} className="text-emerald-600" />
                         <span>Checked In</span>
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center space-x-1">
-                        <Clock size={10} className="text-amber-600" />
-                        <span>Not Checked In</span>
                       </span>
                     )}
 
