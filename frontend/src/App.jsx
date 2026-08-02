@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { HackathonProvider, useHackathon } from './context/HackathonContext';
 import { ToastProvider } from './context/ToastContext';
@@ -55,6 +55,7 @@ const ProtectedLayout = () => {
   const { user, loading } = useAuth();
   const { activeHackathon } = useHackathon();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -69,12 +70,14 @@ const ProtectedLayout = () => {
     return <Navigate to={`/login?redirect=${encodeURIComponent(currentPath)}`} replace />;
   }
 
+  const isChatPage = location.pathname === '/team-chat';
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/40 animate-page-enter">
       <Navbar onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
       <div className="flex flex-1 relative">
         <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto h-[calc(100vh-61px)] animate-page-enter">
+        <main className={`flex-1 ${isChatPage ? 'p-0 overflow-hidden' : 'p-4 md:p-8 overflow-y-auto'} h-[calc(100vh-61px)] animate-page-enter`}>
           <Outlet />
         </main>
       </div>

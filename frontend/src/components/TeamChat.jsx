@@ -193,7 +193,7 @@ export default function TeamChat({ teamId, teamName, fullScreen = false }) {
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-2 bg-slate-50/50 relative">
+      <div className="flex-1 min-h-0 p-3 md:p-4 overflow-y-auto space-y-2 bg-slate-50/50 relative">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full space-y-2 text-gray-400">
             <RefreshCw size={20} className="animate-spin text-blue-600" />
