@@ -240,7 +240,7 @@ export default function Sidebar({ isOpen, onClose }) {
       <aside 
         onClick={(e) => { if (e.target.closest('a') || e.target.closest('button')) onClose(); }}
         className={`w-64 bg-white border-r border-gray-100 p-6 overflow-y-auto flex-shrink-0 transition-transform duration-300 ease-in-out
-          fixed inset-y-[61px] left-0 z-30 shadow-xl md:shadow-none md:sticky md:top-[61px] md:h-[calc(100vh-61px)] md:translate-x-0 md:z-auto
+          fixed inset-y-[61px] left-0 z-30 shadow-xl md:shadow-none md:relative md:top-0 md:h-full md:translate-x-0 md:z-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >

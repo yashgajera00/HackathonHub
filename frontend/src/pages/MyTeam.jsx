@@ -506,9 +506,9 @@ export default function MyTeam() {
   const isLeader = team.is_leader;
   
   return (
-    <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
+    <div className="max-w-4xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6">
       {/* Team Info Panel */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-xl font-bold text-gray-900 truncate">{team.name}</h2>
@@ -575,18 +575,18 @@ export default function MyTeam() {
               const isCheckedIn = m.checked_in;
               
               return (
-                <div key={m.id} className="flex items-center justify-between text-xs font-semibold p-2 bg-gray-50/60 rounded-xl border border-gray-100/70 hover:bg-gray-50 transition">
-                  <div className="flex items-center space-x-2.5">
-                    <div className="h-6 w-6 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-[10px]">
+                <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold p-2.5 bg-gray-50/60 rounded-xl border border-gray-100/70 hover:bg-gray-50 transition">
+                  <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+                    <div className="h-6 w-6 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-[10px] shrink-0">
                       {u.username ? u.username.slice(0, 2).toUpperCase() : 'U'}
                     </div>
-                    <span className="text-gray-800 truncate max-w-[130px]">{name}</span>
+                    <span className="text-gray-800 font-semibold truncate">{name}</span>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-1.5 shrink-0 justify-end">
                     {isCheckedIn && (
                       <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/60 flex items-center space-x-1">
-                        <CheckCircle2 size={10} className="text-emerald-600" />
+                        <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
                         <span>Checked In</span>
                       </span>
                     )}
@@ -687,27 +687,29 @@ export default function MyTeam() {
               
               <div className="space-y-2 text-xs font-semibold text-gray-400">
                 <span className="block text-[10px] uppercase tracking-wider">Invite via Link</span>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <input
                     type="text"
                     readOnly
                     value={`${window.location.origin}/join-team/${team.invite_code}`}
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-xl text-xs bg-gray-50 focus:outline-none text-gray-500 font-mono select-all"
+                    className="w-full min-w-0 flex-1 px-3 py-2 sm:py-1.5 border border-gray-200 rounded-xl text-xs bg-gray-50 focus:outline-none text-gray-500 font-mono select-all truncate"
                   />
-                  <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 font-bold rounded-xl text-xs transition"
-                  >
-                    Copy
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleShareLink}
-                    className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 font-bold rounded-xl text-xs transition"
-                  >
-                    Share
-                  </button>
+                  <div className="flex items-center space-x-2 shrink-0 justify-end">
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 font-bold rounded-xl text-xs transition"
+                    >
+                      Copy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleShareLink}
+                      className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 font-bold rounded-xl text-xs transition"
+                    >
+                      Share
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[10px] text-gray-400 font-normal leading-normal">
                   Share this link with other registered participants. Opening the link will immediately join them to your team.
