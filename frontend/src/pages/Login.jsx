@@ -102,7 +102,7 @@ export default function Login() {
   const CurrentActivityIcon = LIVE_ACTIVITIES[activityIndex].icon;
 
   return (
-    <div className="h-screen max-h-screen overflow-hidden bg-slate-50 text-slate-900 font-sans selection:bg-blue-600 selection:text-white relative flex flex-col justify-between">
+    <div className="min-h-screen md:h-screen md:max-h-screen overflow-y-auto md:overflow-hidden bg-slate-50 text-slate-900 font-sans selection:bg-blue-600 selection:text-white relative flex flex-col justify-between">
       
       {/* Background Decorative Animated Gradient Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[850px] h-[400px] bg-gradient-to-r from-blue-200/80 via-indigo-200/70 to-purple-200/60 blur-[130px] rounded-full pointer-events-none animate-pulse-slow" />
@@ -140,7 +140,7 @@ export default function Login() {
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 my-auto flex-1 flex items-center overflow-hidden animate-page-enter">
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-2 my-auto flex-1 flex items-center overflow-y-auto md:overflow-hidden animate-page-enter">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full">
           
           {/* LEFT SHOWCASE CONTENT WITH AUTO-CYCLED WIDGETS */}
