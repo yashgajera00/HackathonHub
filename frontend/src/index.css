@@ -8,10 +8,13 @@
   --font-display: 'Outfit', sans-serif;
 }
 
-html, body {
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   scroll-behavior: smooth;
-  overflow-x: hidden;
-  max-width: 100vw;
+  overflow: hidden;
   overscroll-behavior-y: none;
 }
 
@@ -19,8 +22,6 @@ body {
   font-family: var(--font-sans);
   background-color: #f9fafb;
   color: #1f2937;
-  min-height: 100vh;
-  margin: 0;
 }
 
 @keyframes floatSlow {
@@ -136,20 +137,35 @@ body {
 }
 
 
-/* Beautiful custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Custom scrollbar for desktop */
+@media (min-width: 769px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
 }
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+
+/* Mobile scrollbar cleanup: hide redundant custom tracks so only single native OS scroll indicator renders */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none;
+    width: 0px;
+    height: 0px;
+  }
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Hide scrollbar for horizontal scrollable areas on mobile */
