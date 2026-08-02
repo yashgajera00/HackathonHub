@@ -9,20 +9,36 @@ export default function TeamChat({ teamId, teamName }) {
   const { showToast } = useToast();
 
   const [messages, setMessages] = useState([]);
+  const [typingUsers, setTypingUsers] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const lastTypingSentRef = useRef(0);
 
   const fetchMessages = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       const res = await api.get(`/teams/${teamId}/chat/`);
-      setMessages(res.data || []);
+      if (Array.isArray(res.data)) {
+        setMessages(res.data);
+      } else if (res.data) {
+        setMessages(res.data.messages || []);
+        setTypingUsers(res.data.typing_users || []);
+      }
     } catch (err) {
       console.error("Failed to load chat messages", err);
     } finally {
       if (!silent) setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+    const now = Date.now();
+    if (now - lastTypingSentRef.current > 2000) {
+      lastTypingSentRef.current = now;
+      api.post(`/teams/${teamId}/typing/`).catch(() => {});
     }
   };
 
@@ -131,6 +147,21 @@ export default function TeamChat({ teamId, teamName }) {
             );
           })
         )}
+
+        {/* Live Typing Indicator */}
+        {typingUsers.length > 0 && (
+          <div className="flex items-center space-x-2 text-[11px] font-semibold text-blue-600 bg-blue-50/80 px-3 py-1.5 rounded-xl border border-blue-100/80 animate-fade-in w-fit shrink-0">
+            <div className="flex space-x-1 items-center">
+              <div className="h-1.5 w-1.5 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="h-1.5 w-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+              <div className="h-1.5 w-1.5 bg-blue-600 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+            </div>
+            <span>
+              {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is typing...' : 'are typing...'}
+            </span>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -139,7 +170,7 @@ export default function TeamChat({ teamId, teamName }) {
         <input
           type="text"
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Type a message to your team..."
           className="flex-1 px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-50/50 focus:bg-white transition text-gray-800 font-medium"
         />

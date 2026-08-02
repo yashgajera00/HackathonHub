@@ -12,6 +12,11 @@ from notifications.models import Notification
 from common.permissions import IsHackathonOrganizer, IsHackathonParticipant
 from dashboard.models import log_activity
 
+import time
+
+# Dictionary tracking live typing status per team
+TEAM_TYPING_STATUS = {}
+
 class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all().order_by('-created_at')
     serializer_class = TeamSerializer
@@ -104,7 +109,22 @@ class TeamViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             messages = team.chat_messages.select_related('sender').all()
             serializer = TeamChatMessageSerializer(messages, many=True)
-            return Response(serializer.data)
+
+            # Filter active typing users (< 4 seconds)
+            now = time.time()
+            active_typings = []
+            if team.id in TEAM_TYPING_STATUS:
+                for uid, info in list(TEAM_TYPING_STATUS[team.id].items()):
+                    if now - info['timestamp'] < 4.0:
+                        if uid != user.id:
+                            active_typings.append(info['name'])
+                    else:
+                        TEAM_TYPING_STATUS[team.id].pop(uid, None)
+
+            return Response({
+                "messages": serializer.data,
+                "typing_users": active_typings
+            })
 
         elif request.method == 'POST':
             if not is_member:
@@ -119,8 +139,33 @@ class TeamViewSet(viewsets.ModelViewSet):
                 sender=user,
                 message=msg_text
             )
+
+            # Clear typing status on send
+            if team.id in TEAM_TYPING_STATUS and user.id in TEAM_TYPING_STATUS[team.id]:
+                TEAM_TYPING_STATUS[team.id].pop(user.id, None)
+
             serializer = TeamChatMessageSerializer(chat_msg)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def typing(self, request, pk=None):
+        team = self.get_object()
+        user = request.user
+        
+        if not team.members.filter(user=user).exists():
+            return Response({"detail": "Only team members can update typing status."}, status=status.HTTP_403_FORBIDDEN)
+
+        now = time.time()
+        name = f"{user.first_name} {user.last_name}".strip() or user.username
+        
+        if team.id not in TEAM_TYPING_STATUS:
+            TEAM_TYPING_STATUS[team.id] = {}
+        
+        TEAM_TYPING_STATUS[team.id][user.id] = {
+            'name': name,
+            'timestamp': now
+        }
+        return Response({"status": "ok"})
 
     def get_permissions(self):
         if self.action in ['create', 'leave', 'submit_project']:
