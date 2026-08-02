@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.conf import settings
 from users.models import CustomUser
 from hackathons.models import Hackathon
-from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest
+from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamChatMessage
 from memberships.serializers import UserMinSerializer
 
 class TeamMemberSerializer(serializers.ModelSerializer):
@@ -131,4 +131,17 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
         model = TeamJoinRequest
         fields = ('id', 'team', 'team_name', 'requester', 'requester_details', 'status', 'created_at')
         read_only_fields = ('id', 'requester', 'status', 'created_at')
+
+class TeamChatMessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.ReadOnlyField(source='sender.username')
+    sender_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TeamChatMessage
+        fields = ('id', 'team', 'sender', 'sender_username', 'sender_name', 'message', 'created_at')
+        read_only_fields = ('id', 'sender', 'created_at')
+
+    def get_sender_name(self, obj):
+        name = f"{obj.sender.first_name} {obj.sender.last_name}".strip()
+        return name if name else obj.sender.username
 

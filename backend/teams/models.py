@@ -96,3 +96,15 @@ class TeamJoinRequest(models.Model):
     def __str__(self):
         return f"Join Request: {self.requester.username} to {self.team.name} ({self.status})"
 
+class TeamChatMessage(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='chat_messages')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='team_chat_messages')
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.sender.username} in {self.team.name}: {self.message[:20]}"
+

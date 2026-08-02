@@ -4,6 +4,7 @@ import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import TeamChat from '../components/TeamChat';
 
 export default function MyTeam() {
   const { activeHackathon } = useHackathon();
@@ -506,8 +507,11 @@ export default function MyTeam() {
   const isLeader = team.is_leader;
   
   return (
-    <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
-      {/* Team Info Panel */}
+    <div className="max-w-6xl mx-auto py-8 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Team Management & Info */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Team Info Panel */}
       <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
         <div className="flex justify-between items-start">
           <div>
@@ -758,6 +762,14 @@ export default function MyTeam() {
           </button>
         </div>
       )}
+
+        </div>
+
+        {/* Right Column: Live Team Chat */}
+        <div className="lg:col-span-5 lg:sticky lg:top-24">
+          <TeamChat teamId={team.id} teamName={team.name} />
+        </div>
+      </div>
     </div>
   );
 }

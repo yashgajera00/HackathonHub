@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Count
 from hackathons.models import Hackathon
-from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest
-from teams.serializers import TeamSerializer, TeamInvitationSerializer, TeamJoinRequestSerializer
+from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamChatMessage
+from teams.serializers import TeamSerializer, TeamInvitationSerializer, TeamJoinRequestSerializer, TeamChatMessageSerializer
 from memberships.models import HackathonMember
 from notifications.models import Notification
 from common.permissions import IsHackathonOrganizer, IsHackathonParticipant
@@ -84,6 +84,43 @@ class TeamViewSet(viewsets.ModelViewSet):
             )
             
         return Response({"detail": f"Successfully sent join request for team '{team.name}'! The leader has been notified.", "team_id": team.id})
+
+    @action(detail=True, methods=['get', 'post'], permission_classes=[permissions.IsAuthenticated])
+    def chat(self, request, pk=None):
+        team = self.get_object()
+        user = request.user
+
+        is_member = team.members.filter(user=user).exists()
+        is_staff = user.is_superuser or HackathonMember.objects.filter(
+            hackathon=team.hackathon, 
+            user=user, 
+            role__in=['Organizer', 'Volunteer', 'Judge'], 
+            invitation_status='Accepted'
+        ).exists()
+
+        if not (is_member or is_staff):
+            return Response({"detail": "Only members of this team can access team chat."}, status=status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'GET':
+            messages = team.chat_messages.select_related('sender').all()
+            serializer = TeamChatMessageSerializer(messages, many=True)
+            return Response(serializer.data)
+
+        elif request.method == 'POST':
+            if not is_member:
+                return Response({"detail": "Only team members can post messages."}, status=status.HTTP_403_FORBIDDEN)
+
+            msg_text = request.data.get('message', '').strip()
+            if not msg_text:
+                return Response({"detail": "Message content cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+            chat_msg = TeamChatMessage.objects.create(
+                team=team,
+                sender=user,
+                message=msg_text
+            )
+            serializer = TeamChatMessageSerializer(chat_msg)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_permissions(self):
         if self.action in ['create', 'leave', 'submit_project']:
