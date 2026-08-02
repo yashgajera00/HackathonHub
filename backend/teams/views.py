@@ -90,7 +90,7 @@ class TeamViewSet(viewsets.ModelViewSet):
             
         return Response({"detail": f"Successfully sent join request for team '{team.name}'! The leader has been notified.", "team_id": team.id})
 
-    @action(detail=True, methods=['get', 'post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['get', 'post', 'patch', 'delete'], permission_classes=[permissions.IsAuthenticated])
     def chat(self, request, pk=None):
         team = self.get_object()
         user = request.user
@@ -107,7 +107,15 @@ class TeamViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Only members of this team can access team chat."}, status=status.HTTP_403_FORBIDDEN)
 
         if request.method == 'GET':
-            messages = team.chat_messages.select_related('sender').all()
+            messages = team.chat_messages.select_related('sender', 'reply_to', 'reply_to__sender').prefetch_related('seen_by').all()
+            
+            # Automatically mark messages as seen by user
+            if is_member:
+                unseen = messages.exclude(seen_by=user)
+                if unseen.exists():
+                    for msg in unseen:
+                        msg.seen_by.add(user)
+
             serializer = TeamChatMessageSerializer(messages, many=True)
 
             # Filter active typing users (< 4 seconds)
@@ -134,11 +142,18 @@ class TeamViewSet(viewsets.ModelViewSet):
             if not msg_text:
                 return Response({"detail": "Message content cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
+            reply_to_id = request.data.get('reply_to')
+            reply_to_obj = None
+            if reply_to_id:
+                reply_to_obj = TeamChatMessage.objects.filter(id=reply_to_id, team=team).first()
+
             chat_msg = TeamChatMessage.objects.create(
                 team=team,
                 sender=user,
-                message=msg_text
+                message=msg_text,
+                reply_to=reply_to_obj
             )
+            chat_msg.seen_by.add(user)
 
             # Clear typing status on send
             if team.id in TEAM_TYPING_STATUS and user.id in TEAM_TYPING_STATUS[team.id]:
@@ -146,6 +161,39 @@ class TeamViewSet(viewsets.ModelViewSet):
 
             serializer = TeamChatMessageSerializer(chat_msg)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        elif request.method == 'PATCH':
+            msg_id = request.data.get('message_id') or request.query_params.get('message_id')
+            if not msg_id:
+                return Response({"detail": "message_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            chat_msg = get_object_or_404(TeamChatMessage, id=msg_id, team=team)
+            if chat_msg.sender != user:
+                return Response({"detail": "You can only edit your own messages."}, status=status.HTTP_403_FORBIDDEN)
+
+            new_text = request.data.get('message', '').strip()
+            if not new_text:
+                return Response({"detail": "Message cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+            chat_msg.message = new_text
+            chat_msg.is_edited = True
+            chat_msg.save()
+
+            serializer = TeamChatMessageSerializer(chat_msg)
+            return Response(serializer.data)
+
+        elif request.method == 'DELETE':
+            msg_id = request.data.get('message_id') or request.query_params.get('message_id')
+            if not msg_id:
+                return Response({"detail": "message_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            chat_msg = get_object_or_404(TeamChatMessage, id=msg_id, team=team)
+            is_leader = (team.created_by == user)
+            if chat_msg.sender != user and not is_leader and not is_staff:
+                return Response({"detail": "You do not have permission to delete this message."}, status=status.HTTP_403_FORBIDDEN)
+
+            chat_msg.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def typing(self, request, pk=None):

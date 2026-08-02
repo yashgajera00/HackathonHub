@@ -135,13 +135,39 @@ class TeamJoinRequestSerializer(serializers.ModelSerializer):
 class TeamChatMessageSerializer(serializers.ModelSerializer):
     sender_username = serializers.ReadOnlyField(source='sender.username')
     sender_name = serializers.SerializerMethodField()
+    reply_to_details = serializers.SerializerMethodField()
+    seen_by_list = serializers.SerializerMethodField()
 
     class Meta:
         model = TeamChatMessage
-        fields = ('id', 'team', 'sender', 'sender_username', 'sender_name', 'message', 'created_at')
-        read_only_fields = ('id', 'sender', 'created_at')
+        fields = (
+            'id', 'team', 'sender', 'sender_username', 'sender_name', 
+            'message', 'reply_to', 'reply_to_details', 'is_edited', 
+            'seen_by_list', 'created_at', 'updated_at'
+        )
+        read_only_fields = ('id', 'sender', 'is_edited', 'created_at', 'updated_at')
 
     def get_sender_name(self, obj):
         name = f"{obj.sender.first_name} {obj.sender.last_name}".strip()
         return name if name else obj.sender.username
+
+    def get_reply_to_details(self, obj):
+        if obj.reply_to:
+            sender_name = f"{obj.reply_to.sender.first_name} {obj.reply_to.sender.last_name}".strip() or obj.reply_to.sender.username
+            return {
+                'id': obj.reply_to.id,
+                'sender_name': sender_name,
+                'message': obj.reply_to.message
+            }
+        return None
+
+    def get_seen_by_list(self, obj):
+        return [
+            {
+                'id': u.id,
+                'name': f"{u.first_name} {u.last_name}".strip() or u.username,
+                'username': u.username
+            }
+            for u in obj.seen_by.all()
+        ]
 

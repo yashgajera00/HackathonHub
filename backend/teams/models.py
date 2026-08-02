@@ -100,7 +100,11 @@ class TeamChatMessage(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='chat_messages')
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='team_chat_messages')
     message = models.TextField()
+    reply_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replies')
+    is_edited = models.BooleanField(default=False)
+    seen_by = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='seen_chat_messages')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['created_at']
