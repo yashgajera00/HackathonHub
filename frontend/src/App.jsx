@@ -69,11 +69,11 @@ const ProtectedLayout = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50/40">
+    <div className="min-h-screen flex flex-col bg-gray-50/40 animate-page-enter">
       <Navbar onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
       <div className="flex flex-1 relative">
         <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto h-[calc(100vh-61px)]">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto h-[calc(100vh-61px)] animate-page-enter">
           <Outlet />
         </main>
       </div>
