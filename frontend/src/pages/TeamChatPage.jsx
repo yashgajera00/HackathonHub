@@ -97,7 +97,7 @@ export default function TeamChatPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-white">
+    <div className="w-full h-full flex flex-col min-h-0 overflow-hidden bg-white">
       <TeamChat teamId={team.id} teamName={team.name} fullScreen={true} />
     </div>
   );

@@ -174,19 +174,19 @@ export default function TeamChat({ teamId, teamName, fullScreen = false }) {
       fullScreen ? 'w-full h-full border-0 rounded-none shadow-none' : 'border border-gray-100 rounded-2xl shadow-xs h-[500px]'
     }`}>
       {/* Header */}
-      <div className="p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
-        <div className="flex items-center space-x-2.5">
-          <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs">
+      <div className="sticky top-0 z-10 p-3 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0 shadow-md">
+        <div className="flex items-center space-x-2.5 min-w-0">
+          <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
             <MessageSquare size={16} />
           </div>
-          <div>
-            <h3 className="text-sm font-bold truncate">Team Chat</h3>
-            <p className="text-[11px] text-slate-300 font-medium">
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold truncate text-white">Team Chat</h3>
+            <p className="text-[11px] text-slate-300 font-medium truncate">
               {teamName ? `${teamName} Channel` : 'Live Teammate Discussion'}
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-[10px] font-semibold text-emerald-400">
+        <div className="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-[10px] font-semibold text-emerald-400 shrink-0">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping mr-1"></span>
           <span>Live Sync</span>
         </div>
@@ -480,8 +480,13 @@ export default function TeamChat({ teamId, teamName, fullScreen = false }) {
           type="text"
           value={newMessage}
           onChange={handleInputChange}
+          onFocus={() => {
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+          }}
           placeholder={editingMessage ? "Update message..." : replyingTo ? "Type your reply..." : "Type a message to your team..."}
-          className="flex-1 px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-50/50 focus:bg-white transition text-gray-800 font-medium"
+          className="flex-1 px-3.5 py-2 border border-gray-200 rounded-xl text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-50/50 focus:bg-white transition text-gray-800 font-medium"
         />
         <button
           type="submit"
