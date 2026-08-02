@@ -7,31 +7,66 @@ from memberships.serializers import UserMinSerializer
 
 class TeamMemberSerializer(serializers.ModelSerializer):
     user_details = UserMinSerializer(source='user', read_only=True)
+    checked_in = serializers.SerializerMethodField()
 
     class Meta:
         model = TeamMember
-        fields = ('id', 'team', 'user', 'user_details', 'role', 'joined_at')
-        read_only_fields = ('id', 'joined_at')
+        fields = ('id', 'team', 'user', 'user_details', 'role', 'joined_at', 'checked_in')
+        read_only_fields = ('id', 'joined_at', 'checked_in')
+
+    def get_checked_in(self, obj):
+        from registrations.models import Registration
+        reg = Registration.objects.filter(hackathon=obj.hackathon, user=obj.user).first()
+        return reg.checked_in if reg else False
 
 class TeamSerializer(serializers.ModelSerializer):
     members = TeamMemberSerializer(many=True, read_only=True)
     created_by_username = serializers.ReadOnlyField(source='created_by.username')
     is_leader = serializers.SerializerMethodField()
+    all_members_checked_in = serializers.SerializerMethodField()
+    checked_in_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Team
         fields = (
             'id', 'hackathon', 'name', 'project_title', 'project_description', 
             'project_submission_link', 'created_by', 'created_by_username', 
-            'created_at', 'updated_at', 'members', 'is_leader', 'status', 'invite_code'
+            'created_at', 'updated_at', 'members', 'is_leader', 'status', 'invite_code',
+            'all_members_checked_in', 'checked_in_count'
         )
-        read_only_fields = ('id', 'created_by', 'created_at', 'updated_at', 'members', 'is_leader', 'status', 'invite_code')
+        read_only_fields = (
+            'id', 'created_by', 'created_at', 'updated_at', 'members', 'is_leader', 
+            'status', 'invite_code', 'all_members_checked_in', 'checked_in_count'
+        )
 
     def get_is_leader(self, obj):
         request = self.context.get('request')
         if request and request.user and request.user.is_authenticated:
             return obj.created_by == request.user
         return False
+
+    def get_all_members_checked_in(self, obj):
+        from registrations.models import Registration
+        member_user_ids = obj.members.values_list('user_id', flat=True)
+        if not member_user_ids:
+            return False
+        checked_in_cnt = Registration.objects.filter(
+            hackathon=obj.hackathon, 
+            user_id__in=member_user_ids, 
+            checked_in=True
+        ).count()
+        return checked_in_cnt == len(member_user_ids)
+
+    def get_checked_in_count(self, obj):
+        from registrations.models import Registration
+        member_user_ids = obj.members.values_list('user_id', flat=True)
+        if not member_user_ids:
+            return 0
+        return Registration.objects.filter(
+            hackathon=obj.hackathon, 
+            user_id__in=member_user_ids, 
+            checked_in=True
+        ).count()
 
     def validate(self, data):
         hackathon = data.get('hackathon')

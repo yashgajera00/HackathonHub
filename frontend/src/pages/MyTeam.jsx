@@ -3,7 +3,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
-import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash } from 'lucide-react';
+import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 
 export default function MyTeam() {
   const { activeHackathon } = useHackathon();
@@ -525,38 +525,77 @@ export default function MyTeam() {
           )}
         </div>
 
-        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Status</span>
-          <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border ${
-            team.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
-            team.status === 'Submitted' ? 'bg-blue-50 text-blue-800 border-blue-100' :
-            team.status === 'Rejected' ? 'bg-rose-50 text-rose-800 border-rose-100' :
-            'bg-amber-50 text-amber-800 border-amber-100'
-          }`}>
-            {team.status || 'Pending'}
-          </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Status</span>
+            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border ${
+              team.status === 'Approved' ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+              team.status === 'Submitted' ? 'bg-blue-50 text-blue-800 border-blue-100' :
+              team.status === 'Rejected' ? 'bg-rose-50 text-rose-800 border-rose-100' :
+              'bg-amber-50 text-amber-800 border-amber-100'
+            }`}>
+              {team.status || 'Pending'}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/80">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Check-in Status</span>
+            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] border flex items-center space-x-1 ${
+              team.all_members_checked_in
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : 'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              {team.all_members_checked_in ? (
+                <>
+                  <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
+                  <span>All Checked In ({team.checked_in_count || team.members.filter(m => m.checked_in).length}/{team.members.length})</span>
+                </>
+              ) : (
+                <>
+                  <Clock size={10} className="text-amber-600 shrink-0" />
+                  <span>{team.checked_in_count || team.members.filter(m => m.checked_in).length}/{team.members.length} Checked In</span>
+                </>
+              )}
+            </span>
+          </div>
         </div>
 
         <div className="border-t border-gray-100 my-2"></div>
 
         {/* Members */}
         <div className="space-y-3">
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Team Roster</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Team Roster</span>
+            <span className="text-[10px] text-gray-400 font-medium">Check-in status</span>
+          </div>
           <div className="space-y-2">
             {team.members.map((m) => {
               const u = m.user_details || {};
               const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
+              const isCheckedIn = m.checked_in;
               
               return (
-                <div key={m.id} className="flex items-center justify-between text-xs font-semibold">
+                <div key={m.id} className="flex items-center justify-between text-xs font-semibold p-2 bg-gray-50/60 rounded-xl border border-gray-100/70 hover:bg-gray-50 transition">
                   <div className="flex items-center space-x-2.5">
-                    <div className="h-6 w-6 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center">
-                      {u.username.slice(0, 2).toUpperCase()}
+                    <div className="h-6 w-6 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-[10px]">
+                      {u.username ? u.username.slice(0, 2).toUpperCase() : 'U'}
                     </div>
-                    <span className="text-gray-800 truncate max-w-[120px]">{name}</span>
+                    <span className="text-gray-800 truncate max-w-[130px]">{name}</span>
                   </div>
 
                   <div className="flex items-center space-x-2">
+                    {isCheckedIn ? (
+                      <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/60 flex items-center space-x-1">
+                        <CheckCircle2 size={10} className="text-emerald-600" />
+                        <span>Checked In</span>
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center space-x-1">
+                        <Clock size={10} className="text-amber-600" />
+                        <span>Not Checked In</span>
+                      </span>
+                    )}
+
                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${m.role === 'Leader' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
                       {m.role}
                     </span>
@@ -692,6 +731,18 @@ export default function MyTeam() {
             Once submitted, your team will be reviewed by staff. Your roster and details will be locked.
           </p>
           
+          {!team.all_members_checked_in && (
+            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs font-semibold flex items-start space-x-2">
+              <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold">Team Check-In Required</div>
+                <p className="text-[11px] text-amber-700 font-normal mt-0.5">
+                  Not all team members have checked in ({team.checked_in_count || team.members.filter(m => m.checked_in).length}/{team.members.length} checked in). Every member must scan their event QR pass to check in.
+                </p>
+              </div>
+            </div>
+          )}
+
           {team.members.length < activeHackathon.min_team_size ? (
             <div className="p-3 bg-amber-50 border border-amber-100 text-amber-800 rounded-xl text-[10px] font-semibold leading-relaxed">
               Your team has {team.members.length} member(s). You need at least {activeHackathon.min_team_size} member(s) to submit (Max: {activeHackathon.max_team_size}).
