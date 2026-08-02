@@ -4,8 +4,8 @@ import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { 
-  Calendar, MapPin, Users, Award, BookOpen, Clock, Plus, Trash2, 
-  Sparkles, CheckCircle, Download, ShieldCheck, Trophy, RefreshCw, AlertTriangle
+  Calendar, MapPin, Users, BookOpen, Clock, Plus, Trash2, 
+  Sparkles, CheckCircle, ShieldCheck, Trophy, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -17,13 +17,11 @@ export default function HackathonDetails() {
   const [activeTab, setActiveTab] = useState('schedule');
   const [schedule, setSchedule] = useState([]);
   const [rules, setRules] = useState([]);
-  const [cert, setCert] = useState(null);
   const [userRegistration, setUserRegistration] = useState(null);
   
   // Loading flags
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [loadingRules, setLoadingRules] = useState(false);
-  const [loadingCert, setLoadingCert] = useState(false);
   const [loadingRegistration, setLoadingRegistration] = useState(false);
 
   // Forms
@@ -48,18 +46,12 @@ export default function HackathonDetails() {
       fetchSchedule(false);
       fetchRules(false);
       fetchUserRegistration(false);
-      if (activeHackathonRole === 'Participant') {
-        fetchCertificate(false);
-      }
 
       const interval = setInterval(() => {
         refreshHackathonDetails(true);
         fetchSchedule(true);
         fetchRules(true);
         fetchUserRegistration(true);
-        if (activeHackathonRole === 'Participant') {
-          fetchCertificate(true);
-        }
       }, 5000);
 
       return () => clearInterval(interval);
@@ -111,28 +103,6 @@ export default function HackathonDetails() {
       console.error(e);
     } finally {
       if (!silent) setLoadingRules(false);
-    }
-  };
-
-  const fetchCertificate = async (silent = false) => {
-    try {
-      if (!silent) setLoadingCert(true);
-      // Fetch registrations for current user & hackathon
-      const regsResponse = await api.get('/registrations/', {
-        params: { hackathon_id: activeHackathon.id }
-      });
-      const regs = regsResponse.data.results || regsResponse.data;
-      if (regs.length > 0 && regs[0].status === 'Approved') {
-        const regId = regs[0].id;
-        // Fetch certificate
-        const certResponse = await api.get(`/registrations/${regId}/certificate/`);
-        setCert(certResponse.data);
-      }
-    } catch (e) {
-      console.log("No certificate ready yet or registration pending.");
-      setCert(null);
-    } finally {
-      if (!silent) setLoadingCert(false);
     }
   };
 
@@ -282,15 +252,6 @@ export default function HackathonDetails() {
           >
             <span>Check-in QR Ticket</span>
             {activeTab === 'ticket' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
-          </button>
-        )}
-        {activeHackathonRole === 'Participant' && (
-          <button
-            onClick={() => setActiveTab('certificate')}
-            className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'certificate' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
-          >
-            <span>Participation Certificate</span>
-            {activeTab === 'certificate' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
           </button>
         )}
       </div>
@@ -647,83 +608,6 @@ export default function HackathonDetails() {
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Certificate Tab */}
-        {activeTab === 'certificate' && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-bold font-display text-gray-900">Certificate of Participation</h3>
-            {loadingCert ? (
-              <div className="h-40 bg-gray-50 animate-pulse rounded-2xl"></div>
-            ) : cert ? (
-              <div className="space-y-6">
-                {/* Print Layout */}
-                <div className="max-w-2xl mx-auto border-8 border-blue-900 p-8 rounded-3xl bg-radial from-slate-50 to-white text-center shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-5">
-                    <Award size={200} />
-                  </div>
-                  
-                  <div className="space-y-6 relative z-10">
-                    <div className="flex justify-center">
-                      <span className="h-10 w-10 bg-blue-900 text-white rounded-xl flex items-center justify-center font-bold text-xl">H</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-bold text-blue-900 uppercase tracking-widest">Certificate of Completion</h4>
-                      <h2 className="text-2xl font-bold font-display text-slate-800">Hackathon Participant</h2>
-                    </div>
-
-                    <p className="text-xs text-slate-400 font-medium italic">This is proudly presented to</p>
-                    
-                    <h1 className="text-3xl font-extrabold text-blue-900 font-display tracking-tight border-b-2 border-slate-200/50 pb-2 max-w-md mx-auto">
-                      {cert.participant_name}
-                    </h1>
-
-                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                      for successfully registering, checkin-in, and actively building innovative projects during the 
-                      <span className="font-semibold text-slate-800"> {cert.hackathon_title} </span> 
-                      held between {new Date(cert.start_date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' })} and {new Date(cert.end_date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' })}.
-                    </p>
-
-                    <div className="flex justify-between items-center pt-8 max-w-md mx-auto text-[10px] text-slate-400 font-bold border-t border-slate-200/40">
-                      <div className="text-left space-y-1">
-                        <p className="text-slate-600 font-display">HACKATHONHUB PLATFORM</p>
-                        <p className="font-medium text-slate-400">Verified System Ledger</p>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <p className="text-slate-600">ISSUE DATE</p>
-                        <p className="font-medium">{new Date(cert.issue_date).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' })}</p>
-                      </div>
-                    </div>
-
-                    {/* Verification hash */}
-                    <div className="flex items-center justify-center space-x-1.5 text-[9px] font-mono text-gray-400 pt-4">
-                      <ShieldCheck size={12} className="text-emerald-500" />
-                      <span>Verifiable UUID: {cert.verification_uuid}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => window.print()}
-                    className="flex items-center space-x-2 px-5 py-2.5 bg-blue-900 hover:bg-slate-850 text-white font-bold rounded-xl text-xs shadow-md transition"
-                  >
-                    <Download size={14} />
-                    <span>Download / Print PDF</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="max-w-md mx-auto p-6 bg-slate-50 border border-slate-100 rounded-2xl text-center space-y-3">
-                <Award size={36} className="mx-auto text-amber-500" />
-                <h4 className="text-sm font-bold text-slate-800">No Certificate Available</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Your certificate is automatically generated once you have registered, your registration is approved, and you check-in at the registration desk.
-                </p>
               </div>
             )}
           </div>
