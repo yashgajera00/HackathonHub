@@ -6,7 +6,7 @@ import {
   Send, MessageSquare, RefreshCw, Reply, Edit3, Trash2, X, Check, CornerUpLeft, Info, Eye, Clock, CheckCircle2
 } from 'lucide-react';
 
-export default function TeamChat({ teamId, teamName }) {
+export default function TeamChat({ teamId, teamName, fullScreen = false }) {
   const { user } = useAuth();
   const { showToast } = useToast();
 
@@ -170,7 +170,9 @@ export default function TeamChat({ teamId, teamName }) {
   };
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden flex flex-col h-[500px] relative">
+    <div className={`bg-white overflow-hidden flex flex-col relative ${
+      fullScreen ? 'w-full h-full border-0 rounded-none shadow-none' : 'border border-gray-100 rounded-2xl shadow-xs h-[500px]'
+    }`}>
       {/* Header */}
       <div className="p-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div className="flex items-center space-x-2.5">

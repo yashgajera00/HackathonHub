@@ -97,24 +97,8 @@ export default function TeamChatPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold font-display text-gray-900">Team Chat</h1>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Channel for <span className="font-bold text-blue-600">{team.name}</span> ({team.members.length} members)
-          </p>
-        </div>
-        <Link
-          to="/my-team"
-          className="inline-flex items-center space-x-1.5 text-xs font-semibold text-gray-600 hover:text-blue-600 bg-white border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition shadow-2xs"
-        >
-          <Users size={14} />
-          <span>My Team</span>
-        </Link>
-      </div>
-
-      <TeamChat teamId={team.id} teamName={team.name} />
+    <div className="-m-4 md:-m-8 h-[calc(100vh-61px)] flex flex-col overflow-hidden bg-white">
+      <TeamChat teamId={team.id} teamName={team.name} fullScreen={true} />
     </div>
   );
 }
