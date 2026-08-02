@@ -505,12 +505,13 @@ export default function MyTeam() {
 
   // User is in a team
   const isLeader = team.is_leader;
+  const hasMultipleMembers = team.members.length > 1;
   
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Team Management & Info */}
-        <div className="lg:col-span-7 space-y-6">
+    <div className={`${hasMultipleMembers ? 'max-w-6xl' : 'max-w-xl'} mx-auto py-8 px-4`}>
+      <div className={hasMultipleMembers ? "grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" : "space-y-6"}>
+        {/* Left Column / Main Section: Team Management & Info */}
+        <div className={hasMultipleMembers ? "lg:col-span-7 space-y-6" : "space-y-6"}>
           {/* Team Info Panel */}
       <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
         <div className="flex justify-between items-start">
@@ -765,10 +766,12 @@ export default function MyTeam() {
 
         </div>
 
-        {/* Right Column: Live Team Chat */}
-        <div className="lg:col-span-5 lg:sticky lg:top-24">
-          <TeamChat teamId={team.id} teamName={team.name} />
-        </div>
+        {/* Right Column: Live Team Chat (Only rendered if team has more than 1 member) */}
+        {hasMultipleMembers && (
+          <div className="lg:col-span-5 lg:sticky lg:top-24">
+            <TeamChat teamId={team.id} teamName={team.name} />
+          </div>
+        )}
       </div>
     </div>
   );
