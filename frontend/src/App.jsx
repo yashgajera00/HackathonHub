@@ -25,6 +25,7 @@ import RegistrationsList from './pages/RegistrationsList';
 import MembersList from './pages/MembersList';
 import TeamsList from './pages/TeamsList';
 import MyTeam from './pages/MyTeam';
+import TeamChatPage from './pages/TeamChatPage';
 import JoinTeam from './pages/JoinTeam';
 import AnnouncementsList from './pages/AnnouncementsList';
 import Leaderboard from './pages/Leaderboard';
@@ -169,6 +170,7 @@ function App() {
                   <Route path="/announcements" element={<AnnouncementsList />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/my-team" element={<MyTeam />} />
+                  <Route path="/team-chat" element={<TeamChatPage />} />
                   <Route path="/join-team/:inviteCode" element={<JoinTeam />} />
 
                   {/* Organizer Management Routes */}

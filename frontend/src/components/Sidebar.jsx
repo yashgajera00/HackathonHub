@@ -4,7 +4,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Trophy, Calendar, Users, Megaphone, BookOpen, Award, UserCheck, QrCode,
-  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell
+  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -165,6 +165,10 @@ export default function Sidebar({ isOpen, onClose }) {
             <NavLink to="/my-team" className={navLinkClass}>
               <Users size={18} />
               <span>My Team</span>
+            </NavLink>
+            <NavLink to="/team-chat" className={navLinkClass}>
+              <MessageSquare size={18} />
+              <span>Team Chat</span>
             </NavLink>
             {activeHackathon?.active_team_status === 'Approved' && (
               <NavLink to="/leaderboard" className={navLinkClass}>
