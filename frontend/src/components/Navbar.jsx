@@ -91,7 +91,7 @@ export default function Navbar({ onToggleSidebar }) {
   };
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 h-[61px] bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between shadow-xs">
+    <nav className="fixed top-0 inset-x-0 z-50 h-[61px] bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between shadow-xs scrollbar-hide">
       {/* Brand logo & Selection */}
       <div className="flex items-center space-x-3 md:space-x-6">
         {/* Hamburger Menu Toggle Button for mobile */}

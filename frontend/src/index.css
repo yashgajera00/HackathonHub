@@ -151,13 +151,16 @@ body {
   background: #9ca3af;
 }
 
-/* Hide scrollbar for horizontal scrollable areas on mobile */
+/* Hide scrollbar completely for sidebar, navbar, and hidden scroll areas */
 .scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 /* Smooth Right-to-Left Slide-In Animation for Mobile Drawer */
