@@ -1,19 +1,20 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export default function Modal({ isOpen, onClose, title, children }) {
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         onClick={onClose} 
-        className="fixed inset-0 bg-black/30 backdrop-blur-xs transition-opacity duration-200"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
       ></div>
 
       {/* Modal Box */}
-      <div className="relative bg-white border border-gray-100 rounded-2xl max-w-lg w-full p-6 shadow-2xl z-10 animate-in zoom-in-95 duration-150">
+      <div className="relative bg-white border border-gray-100 rounded-2xl max-w-lg w-full p-6 shadow-2xl z-10 animate-in zoom-in-95 duration-150 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
           <h3 className="text-lg font-bold text-gray-900 font-display">{title}</h3>
@@ -28,6 +29,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
         {/* Content */}
         <div className="text-sm text-gray-600">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
