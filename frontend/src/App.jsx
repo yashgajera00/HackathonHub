@@ -77,7 +77,7 @@ const ProtectedLayout = () => {
       <Navbar onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
       <div className="flex flex-1 min-h-0 pt-[61px] relative overflow-hidden">
         <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
-        <main className={`flex-1 min-h-0 min-w-0 ${isChatPage ? 'p-0 overflow-hidden' : 'p-4 md:p-8 overflow-y-auto'} animate-page-enter`}>
+        <main className={`flex-1 min-h-0 min-w-0 ${isChatPage ? 'p-0 overflow-hidden' : 'p-4 md:p-8 overflow-y-auto'} overscroll-y-none animate-page-enter`}>
           <Outlet />
         </main>
       </div>
