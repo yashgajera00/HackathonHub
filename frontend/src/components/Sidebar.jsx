@@ -239,7 +239,7 @@ export default function Sidebar({ isOpen, onClose }) {
       )}
       <aside 
         onClick={(e) => { if (e.target.closest('a') || e.target.closest('button')) onClose(); }}
-        className={`w-64 bg-white border-r border-gray-100 p-6 overflow-y-auto flex-shrink-0 transition-transform duration-300 ease-in-out
+        className={`w-64 bg-white border-r border-gray-100 p-6 overflow-y-auto scrollbar-hide flex-shrink-0 transition-transform duration-300 ease-in-out
           fixed inset-y-[61px] left-0 z-30 shadow-xl md:shadow-none md:fixed md:top-[61px] md:bottom-0 md:left-0 md:z-20 md:translate-x-0
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
