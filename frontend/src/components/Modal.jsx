@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import { X } from 'lucide-react';
 
 export default function Modal({ isOpen, onClose, title, children }) {
-  const [mounted, setMounted] = useState(false);
+  if (!isOpen) return null;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!isOpen || !mounted || typeof document === 'undefined') return null;
-
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
@@ -35,7 +28,6 @@ export default function Modal({ isOpen, onClose, title, children }) {
         {/* Content */}
         <div className="text-sm text-gray-600">{children}</div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }

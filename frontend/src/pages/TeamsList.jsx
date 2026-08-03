@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
@@ -245,7 +244,7 @@ export default function TeamsList() {
       )}
 
       {/* Team Detail Modal */}
-      {selectedTeam && mounted && typeof document !== 'undefined' && createPortal(
+      {selectedTeam && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto" onClick={() => { setSelectedTeam(null); setEditingTeamId(null); }}>
           <div
             className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] my-auto overflow-y-auto animate-in zoom-in-95 duration-200"
