@@ -5,7 +5,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         onClick={onClose} 

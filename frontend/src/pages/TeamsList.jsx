@@ -240,9 +240,9 @@ export default function TeamsList() {
 
       {/* Team Detail Modal */}
       {selectedTeam && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setSelectedTeam(null); setEditingTeamId(null); }}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto" onClick={() => { setSelectedTeam(null); setEditingTeamId(null); }}>
           <div
-            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200"
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[85vh] my-auto overflow-y-auto animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
