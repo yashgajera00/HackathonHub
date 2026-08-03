@@ -161,7 +161,7 @@ export default function TeamsList() {
   };
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-6 py-4 flex-1 flex flex-col">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold font-display text-gray-900">Teams & Projects</h2>
