@@ -73,11 +73,11 @@ const ProtectedLayout = () => {
   const isChatPage = location.pathname === '/team-chat';
 
   return (
-    <div className="min-h-screen bg-gray-50/40 animate-page-enter">
+    <div className={`bg-gray-50/40 animate-page-enter ${isChatPage ? 'h-screen h-[100dvh] flex flex-col overflow-hidden' : 'min-h-screen'}`}>
       <Navbar onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
-      <div className="pt-[61px] md:pl-64 min-h-screen relative">
+      <div className={`relative ${isChatPage ? 'flex-1 min-h-0 pt-[61px] md:pl-64 flex flex-col overflow-hidden' : 'pt-[61px] md:pl-64 min-h-screen'}`}>
         <Sidebar isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
-        <main className={`w-full ${isChatPage ? 'p-0 h-[calc(100vh-61px)] overflow-hidden' : 'p-4 md:p-8'} animate-page-enter`}>
+        <main className={`w-full ${isChatPage ? 'p-0 flex-1 min-h-0 overflow-hidden flex flex-col' : 'p-4 md:p-8'} animate-page-enter`}>
           <Outlet />
         </main>
       </div>
