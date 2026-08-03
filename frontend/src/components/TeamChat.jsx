@@ -298,7 +298,7 @@ export default function TeamChat({ teamId, teamName, fullScreen = false }) {
                       }`}>
                         <div className="font-bold flex items-center space-x-1">
                           <CornerUpLeft size={10} />
-                          <span>{msg.reply_to_details.sender_name}</span>
+                          <span>{(msg.reply_to_details.sender === user?.id || msg.reply_to_details.sender_username === user?.username) ? 'You' : msg.reply_to_details.sender_name}</span>
                         </div>
                         <p className="truncate opacity-90 mt-0.5">{msg.reply_to_details.message}</p>
                       </div>
@@ -423,12 +423,15 @@ export default function TeamChat({ teamId, teamName, fullScreen = false }) {
                   
                   {infoModalMsg.seen_by_list && infoModalMsg.seen_by_list.length > 0 ? (
                     <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-                      {infoModalMsg.seen_by_list.map((u) => (
-                        <div key={u.id} className="flex items-center justify-between p-1.5 bg-emerald-50/60 border border-emerald-100 rounded-lg text-emerald-900 font-semibold text-[11px]">
-                          <span>{u.name}</span>
-                          <CheckCircle2 size={12} className="text-emerald-600" />
-                        </div>
-                      ))}
+                      {infoModalMsg.seen_by_list.map((u) => {
+                        const isMe = u.id === user?.id || u.username === user?.username || u.name === user?.username;
+                        return (
+                          <div key={u.id} className="flex items-center justify-between p-1.5 bg-emerald-50/60 border border-emerald-100 rounded-lg text-emerald-900 font-semibold text-[11px]">
+                            <span>{isMe ? 'You' : u.name}</span>
+                            <CheckCircle2 size={12} className="text-emerald-600" />
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-[11px] text-gray-400 italic">Not seen by any teammates yet</p>
