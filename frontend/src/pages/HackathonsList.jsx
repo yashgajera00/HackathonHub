@@ -194,7 +194,8 @@ export default function HackathonsList() {
             return (
               <div 
                 key={h.id} 
-                className="bg-white border border-gray-100 hover:border-blue-200 rounded-2xl shadow-xs hover:shadow-md transition overflow-hidden flex flex-col group"
+                onClick={() => handleEnterDashboard(h.id)}
+                className="bg-white border border-gray-100 hover:border-blue-300 rounded-2xl shadow-xs hover:shadow-md transition overflow-hidden flex flex-col group cursor-pointer"
               >
                 {/* Banner */}
                 <div className="h-32 bg-gray-100 relative overflow-hidden">
@@ -248,8 +249,8 @@ export default function HackathonsList() {
                           <span>{userRole}</span>
                         </span>
                         <button
-                          onClick={() => handleEnterDashboard(h.id)}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition"
+                          onClick={(e) => { e.stopPropagation(); handleEnterDashboard(h.id); }}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition shadow-2xs"
                         >
                           Enter Dashboard
                         </button>
@@ -265,8 +266,8 @@ export default function HackathonsList() {
                         </span>
                         {regStatus === 'Approved' ? (
                           <button
-                            onClick={() => handleEnterDashboard(h.id)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition"
+                            onClick={(e) => { e.stopPropagation(); handleEnterDashboard(h.id); }}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition shadow-2xs"
                           >
                             Enter Dashboard
                           </button>
@@ -278,8 +279,8 @@ export default function HackathonsList() {
                       <>
                         <span className="text-xs text-gray-400">Not Registered</span>
                         <button
-                          onClick={() => handleRegister(h.id)}
-                          className="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-xl text-xs transition"
+                          onClick={(e) => { e.stopPropagation(); handleRegister(h.id); }}
+                          className="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-xl text-xs transition shadow-2xs"
                         >
                           Register to Participate
                         </button>
