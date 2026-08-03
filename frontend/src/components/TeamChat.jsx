@@ -174,7 +174,7 @@ export default function TeamChat({ teamId, teamName, fullScreen = false }) {
       fullScreen ? 'w-full h-full border-0 rounded-none shadow-none' : 'border border-gray-100 rounded-2xl shadow-xs h-[500px]'
     }`}>
       {/* Header */}
-      <div className="sticky top-0 z-10 p-3 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0 shadow-md">
+      <div className="p-3 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0 shadow-md">
         <div className="flex items-center space-x-2.5 min-w-0">
           <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
             <MessageSquare size={16} />
