@@ -360,13 +360,19 @@ class TeamViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post', 'put', 'patch'])
     def submit_project(self, request, pk=None):
         """
-        Leader submits project details/submission links
+        Leader or Organizer submits/edits project details/submission links
         """
         team = self.get_object()
-        if team.status in ['Submitted', 'Approved']:
-            return Response({"detail": "Cannot edit deliverables after submission or approval."}, status=status.HTTP_400_BAD_REQUEST)
-        if team.created_by != request.user and not request.user.is_superuser:
-            return Response({"detail": "Only the Team Leader can submit projects."}, status=status.HTTP_403_FORBIDDEN)
+        
+        is_organizer = HackathonMember.objects.filter(
+            hackathon=team.hackathon,
+            user=request.user,
+            role='Organizer',
+            invitation_status='Accepted'
+        ).exists()
+
+        if team.created_by != request.user and not request.user.is_superuser and not is_organizer:
+            return Response({"detail": "Only the Team Leader or Organizers can edit project details."}, status=status.HTTP_403_FORBIDDEN)
 
         team.project_title = request.data.get('project_title', team.project_title)
         team.project_description = request.data.get('project_description', team.project_description)
