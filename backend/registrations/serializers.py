@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils import timezone
 from users.models import CustomUser
 from hackathons.models import Hackathon
-from registrations.models import Registration
+from registrations.models import Registration, FoodCoupon, UserFoodToken, FoodRedemptionLog
 from memberships.serializers import UserMinSerializer, HackathonMinSerializer
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -51,3 +51,47 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"detail": "Registration is not open for this hackathon status."})
 
         return data
+
+
+class FoodCouponSerializer(serializers.ModelSerializer):
+    total_issued = serializers.SerializerMethodField(read_only=True)
+    total_redeemed = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = FoodCoupon
+        fields = '__all__'
+
+    def get_total_issued(self, obj):
+        return sum(token.total_coupons for token in obj.user_tokens.all())
+
+    def get_total_redeemed(self, obj):
+        return sum(token.used_coupons for token in obj.user_tokens.all())
+
+
+class FoodRedemptionLogSerializer(serializers.ModelSerializer):
+    scanned_by_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = FoodRedemptionLog
+        fields = '__all__'
+
+    def get_scanned_by_name(self, obj):
+        if obj.scanned_by:
+            name = f"{obj.scanned_by.first_name} {obj.scanned_by.last_name}".strip()
+            return name or obj.scanned_by.username
+        return "System"
+
+
+class UserFoodTokenSerializer(serializers.ModelSerializer):
+    user_details = UserMinSerializer(source='user', read_only=True)
+    food_coupon_details = FoodCouponSerializer(source='food_coupon', read_only=True)
+    redemption_logs = FoodRedemptionLogSerializer(many=True, read_only=True)
+    remaining_coupons = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = UserFoodToken
+        fields = '__all__'
+
+    def get_remaining_coupons(self, obj):
+        return max(0, obj.total_coupons - obj.used_coupons)
+

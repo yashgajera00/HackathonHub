@@ -35,6 +35,8 @@ import JudgingPortal from './pages/JudgingPortal';
 import SystemDashboard from './pages/SystemDashboard';
 import SystemUsers from './pages/SystemUsers';
 import OrganizerDashboard from './pages/OrganizerDashboard';
+import FoodManagement from './pages/FoodManagement';
+import MyFoodPasses from './pages/MyFoodPasses';
 
 // Guest Route: redirects logged-in users to dashboard
 const GuestRoute = ({ children }) => {
@@ -175,6 +177,7 @@ function App() {
                   <Route path="/my-team" element={<MyTeam />} />
                   <Route path="/team-chat" element={<TeamChatPage />} />
                   <Route path="/join-team/:inviteCode" element={<JoinTeam />} />
+                  <Route path="/food-passes" element={<MyFoodPasses />} />
 
                   {/* Organizer Management Routes */}
                   <Route element={<HackathonOrganizerRoute />}>
@@ -188,6 +191,7 @@ function App() {
                     <Route path="/registrations" element={<RegistrationsList />} />
                     <Route path="/qr-checkin" element={<QRCheckin />} />
                     <Route path="/teams" element={<TeamsList />} />
+                    <Route path="/food-management" element={<FoodManagement />} />
                   </Route>
 
                   {/* Judge Routes */}

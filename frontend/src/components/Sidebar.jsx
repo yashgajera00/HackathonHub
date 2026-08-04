@@ -4,7 +4,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Trophy, Calendar, Users, Megaphone, BookOpen, Award, UserCheck, QrCode,
-  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare
+  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare, Utensils
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -71,6 +71,10 @@ export default function Sidebar({ isOpen, onClose }) {
             </NavLink>
           </>
         )}
+        <NavLink to="/food-passes" className={navLinkClass}>
+          <Utensils size={18} />
+          <span>My Food Passes</span>
+        </NavLink>
 
         {/* Organizer Options */}
         {activeHackathonRole === 'Organizer' && (
@@ -102,6 +106,10 @@ export default function Sidebar({ isOpen, onClose }) {
               <Trophy size={18} />
               <span>Teams & Projects</span>
             </NavLink>
+            <NavLink to="/food-management" className={navLinkClass}>
+              <Utensils size={18} />
+              <span>Food & Coupons</span>
+            </NavLink>
           </>
         )}
 
@@ -118,6 +126,10 @@ export default function Sidebar({ isOpen, onClose }) {
             <NavLink to="/qr-checkin" className={navLinkClass}>
               <QrCode size={18} />
               <span>Scan QR Check-in</span>
+            </NavLink>
+            <NavLink to="/food-management" className={navLinkClass}>
+              <Utensils size={18} />
+              <span>Food QR Scanner</span>
             </NavLink>
             <NavLink to="/teams" className={navLinkClass}>
               <Trophy size={18} />
