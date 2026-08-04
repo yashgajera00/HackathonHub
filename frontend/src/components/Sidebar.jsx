@@ -75,7 +75,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <Utensils size={18} />
           <span>My Food Passes</span>
         </NavLink>
-        <NavLink to="/teams" className={navLinkClass}>
+        <NavLink to="/submissions" className={navLinkClass}>
           <FolderLock size={18} />
           <span>Submissions</span>
         </NavLink>
@@ -106,6 +106,10 @@ export default function Sidebar({ isOpen, onClose }) {
               <Users size={18} />
               <span>Staff & Roles</span>
             </NavLink>
+            <NavLink to="/submissions" className={navLinkClass}>
+              <FolderLock size={18} />
+              <span>Project Submissions</span>
+            </NavLink>
             <NavLink to="/teams" className={navLinkClass}>
               <Trophy size={18} />
               <span>Teams & Projects</span>
@@ -135,8 +139,8 @@ export default function Sidebar({ isOpen, onClose }) {
               <Utensils size={18} />
               <span>Food QR Scanner</span>
             </NavLink>
-            <NavLink to="/teams" className={navLinkClass}>
-              <Trophy size={18} />
+            <NavLink to="/submissions" className={navLinkClass}>
+              <FolderLock size={18} />
               <span>Project Submissions</span>
             </NavLink>
           </>

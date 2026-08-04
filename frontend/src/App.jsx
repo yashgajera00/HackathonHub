@@ -37,6 +37,7 @@ import SystemUsers from './pages/SystemUsers';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import FoodManagement from './pages/FoodManagement';
 import MyFoodPasses from './pages/MyFoodPasses';
+import SubmissionsPage from './pages/SubmissionsPage';
 
 // Guest Route: redirects logged-in users to dashboard
 const GuestRoute = ({ children }) => {
@@ -178,6 +179,7 @@ function App() {
                   <Route path="/team-chat" element={<TeamChatPage />} />
                   <Route path="/join-team/:inviteCode" element={<JoinTeam />} />
                   <Route path="/food-passes" element={<MyFoodPasses />} />
+                  <Route path="/submissions" element={<SubmissionsPage />} />
 
                   {/* Organizer Management Routes */}
                   <Route element={<HackathonOrganizerRoute />}>
