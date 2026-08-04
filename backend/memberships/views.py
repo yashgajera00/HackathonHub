@@ -98,8 +98,8 @@ class HackathonMemberViewSet(viewsets.ModelViewSet):
         Accept an invitation to join a hackathon
         """
         membership = get_object_or_404(HackathonMember, pk=pk, user=request.user)
-        if membership.invitation_status != 'Pending':
-            return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+        if membership.invitation_status == 'Accepted':
+            return Response(self.get_serializer(membership).data, status=status.HTTP_200_OK)
             
         membership.invitation_status = 'Accepted'
         membership.save()
@@ -127,8 +127,8 @@ class HackathonMemberViewSet(viewsets.ModelViewSet):
         Reject an invitation to join a hackathon
         """
         membership = get_object_or_404(HackathonMember, pk=pk, user=request.user)
-        if membership.invitation_status != 'Pending':
-            return Response({"detail": "Invitation is not pending."}, status=status.HTTP_400_BAD_REQUEST)
+        if membership.invitation_status == 'Rejected':
+            return Response(self.get_serializer(membership).data, status=status.HTTP_200_OK)
             
         membership.invitation_status = 'Rejected'
         membership.save()
