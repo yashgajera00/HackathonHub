@@ -413,11 +413,19 @@ class UserFoodTokenViewSet(viewsets.ModelViewSet):
         token = None
         if token_code:
             token = UserFoodToken.objects.filter(token_code=token_code).first()
+            if not token:
+                # Check if scanned code is a participant event pass Registration qr_code_uuid
+                reg = Registration.objects.filter(qr_code_uuid=token_code).first()
+                if reg:
+                    query = UserFoodToken.objects.filter(hackathon=reg.hackathon, user=reg.user)
+                    if food_coupon_id:
+                        query = query.filter(food_coupon_id=food_coupon_id)
+                    token = query.filter(used_coupons__lt=models.F('total_coupons')).first() or query.first()
         elif user_id and food_coupon_id:
             token = UserFoodToken.objects.filter(user_id=user_id, food_coupon_id=food_coupon_id).first()
 
         if not token:
-            return Response({"detail": "Invalid food QR code or token not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Invalid food QR code or token not found for user."}, status=status.HTTP_404_NOT_FOUND)
 
         remaining = token.total_coupons - token.used_coupons
         if remaining <= 0:

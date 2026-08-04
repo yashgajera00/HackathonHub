@@ -3,7 +3,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import { Utensils, Plus, QrCode, Award, CheckCircle2, AlertCircle, RefreshCw, Search, Users, Shield, Clock, Camera, Trash2 } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 
 export default function FoodManagement() {
   const { activeHackathon, activeHackathonRole } = useHackathon();
@@ -40,7 +40,7 @@ export default function FoodManagement() {
   const [scanCode, setScanCode] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
+  const isScanningRef = useRef(false);
   const scannerRef = useRef(null);
 
   const isOrganizer = activeHackathonRole === 'Organizer' || activeHackathonRole === 'Superuser';
@@ -51,6 +51,52 @@ export default function FoodManagement() {
       fetchUsers();
     }
   }, [activeHackathon?.id]);
+
+  useEffect(() => {
+    if (activeTab !== 'scanner') return;
+
+    const timer = setTimeout(() => {
+      const scannerContainer = document.getElementById('food-scanner-camera');
+      if (scannerContainer && !scannerRef.current) {
+        const scanner = new Html5QrcodeScanner(
+          'food-scanner-camera',
+          {
+            fps: 10,
+            qrbox: (w, h) => {
+              const min = Math.min(w, h);
+              const size = Math.floor(min * 0.75);
+              return { width: size, height: size };
+            },
+            aspectRatio: 1.0,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            videoConstraints: { facingMode: 'environment' }
+          },
+          false
+        );
+        scannerRef.current = scanner;
+
+        const onScanSuccess = (decodedText) => {
+          if (decodedText && !isScanningRef.current) {
+            isScanningRef.current = true;
+            handleRedeemCode(decodedText);
+            setTimeout(() => {
+              isScanningRef.current = false;
+            }, 2000);
+          }
+        };
+
+        scanner.render(onScanSuccess, () => {});
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(err => console.error(err));
+        scannerRef.current = null;
+      }
+    };
+  }, [activeTab]);
 
   const fetchFoodData = async () => {
     setLoading(true);
@@ -556,25 +602,9 @@ export default function FoodManagement() {
             </div>
 
             {/* Camera View Area */}
-            {isCameraActive ? (
-              <div className="space-y-4">
-                <div id="reader" className="w-full max-w-sm mx-auto overflow-hidden rounded-2xl border-2 border-emerald-500"></div>
-                <button
-                  onClick={stopCameraScanner}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-xl text-xs transition"
-                >
-                  Stop Camera
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={startCameraScanner}
-                className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 rounded-2xl text-xs transition flex items-center justify-center space-x-2"
-              >
-                <Camera size={16} />
-                <span>Open Camera Scanner</span>
-              </button>
-            )}
+            <div className="w-full max-w-md mx-auto overflow-hidden rounded-2xl border-2 border-emerald-500/30 bg-gray-50 p-2">
+              <div id="food-scanner-camera" className="w-full rounded-xl overflow-hidden"></div>
+            </div>
 
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
