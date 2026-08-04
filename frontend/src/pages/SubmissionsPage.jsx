@@ -158,8 +158,15 @@ export default function SubmissionsPage() {
     }
   };
 
+  const isParticipant = activeHackathonRole === 'Participant';
+
   // Filtered Teams Logic
   const filteredTeams = teams.filter(t => {
+    // Participants only see their own team submission
+    if (isParticipant && !t.is_member && !t.is_leader) {
+      return false;
+    }
+
     const matchesSearch = (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (t.project_title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (t.created_by_username || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -258,7 +265,8 @@ export default function SubmissionsPage() {
             return (
               <div
                 key={t.id}
-                className="bg-white border border-gray-100 rounded-3xl p-5 shadow-2xs hover:shadow-md transition flex flex-col justify-between space-y-4 group"
+                onClick={() => openModal(t, 'view')}
+                className="bg-white border border-gray-100 rounded-3xl p-5 shadow-2xs hover:shadow-md transition flex flex-col justify-between space-y-4 group cursor-pointer"
               >
                 <div className="space-y-3">
                   <div className="flex justify-between items-start gap-2">
@@ -323,30 +331,26 @@ export default function SubmissionsPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => openModal(t, 'view')}
-                      className="flex-1 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl text-xs transition"
-                    >
-                      View Details
-                    </button>
-                    {t.is_leader && (
-                      <button
-                        onClick={() => openModal(t, 'submit')}
-                        className="py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition"
-                      >
-                        Submit / Edit
-                      </button>
-                    )}
-                    {isJudge && (
-                      <button
-                        onClick={() => openModal(t, 'score')}
-                        className="py-1.5 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition"
-                      >
-                        Score
-                      </button>
-                    )}
-                  </div>
+                  {(t.is_leader || isJudge) && (
+                    <div className="flex space-x-2">
+                      {t.is_leader && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openModal(t, 'submit'); }}
+                          className="flex-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition"
+                        >
+                          Submit / Edit
+                        </button>
+                      )}
+                      {isJudge && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openModal(t, 'score'); }}
+                          className="flex-1 py-1.5 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition"
+                        >
+                          Score
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
