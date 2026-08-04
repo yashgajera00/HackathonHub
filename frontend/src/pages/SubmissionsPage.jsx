@@ -198,53 +198,61 @@ export default function SubmissionsPage() {
         <div className="space-y-1">
           <div className="flex items-center space-x-2.5">
             <Trophy size={24} className="text-amber-300" />
-            <h1 className="text-2xl font-bold font-display">Project Submissions Hub</h1>
+            <h1 className="text-2xl font-bold font-display">
+              {isParticipant ? 'My Team Submission' : 'Project Submissions Hub'}
+            </h1>
           </div>
           <p className="text-xs text-blue-100 font-medium">
-            Review hackathon team deliverables, evaluate projects, and manage selection status.
+            {isParticipant
+              ? "View and manage your team's hackathon project submission."
+              : "Review hackathon team deliverables, evaluate projects, and manage selection status."}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
-          <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20">
-            Total Teams: <span className="text-amber-300">{teams.length}</span>
+        {!isParticipant && (
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold shrink-0">
+            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20">
+              Total Teams: <span className="text-amber-300">{teams.length}</span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20">
+              Submitted: <span className="text-emerald-300">{submittedCount}</span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20">
+              Selected: <span className="text-cyan-300">{approvedCount}</span>
+            </div>
           </div>
-          <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20">
-            Submitted: <span className="text-emerald-300">{submittedCount}</span>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20">
-            Selected: <span className="text-cyan-300">{approvedCount}</span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            placeholder="Search by team name, project title, or leader..."
-          />
-        </div>
+      {/* Search & Filter Toolbar (Staff / Judge / Organizer only) */}
+      {!isParticipant && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              placeholder="Search by team name, project title, or leader..."
+            />
+          </div>
 
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {['ALL', 'SUBMITTED', 'APPROVED', 'PENDING', 'REJECTED'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition shrink-0 ${
-                statusFilter === st ? 'bg-blue-600 text-white shadow-xs' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {st}
-            </button>
-          ))}
+          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {['ALL', 'SUBMITTED', 'APPROVED', 'PENDING', 'REJECTED'].map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition shrink-0 ${
+                  statusFilter === st ? 'bg-blue-600 text-white shadow-xs' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Projects Grid View */}
       {loading ? (

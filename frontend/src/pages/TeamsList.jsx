@@ -164,17 +164,25 @@ export default function TeamsList() {
     return map[status] || 'bg-amber-50 text-amber-800 border-amber-100';
   };
 
+  const displayTeams = activeHackathonRole === 'Participant'
+    ? teams.filter(t => t.is_member || t.is_leader)
+    : teams;
+
   return (
-    <div className="space-y-6 py-4 flex-1 flex flex-col">
-      <div className="flex justify-between items-center">
+    <div className="max-w-6xl mx-auto py-6 sm:py-8 px-3 sm:px-4 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold font-display text-gray-900">Teams & Projects</h2>
+          <h1 className="text-xl sm:text-2xl font-bold font-display text-gray-900">
+            {activeHackathonRole === 'Participant' ? 'My Team & Submission' : 'Teams & Projects'}
+          </h1>
           <p className="text-xs text-gray-500 mt-1">Click on any team to view full details.</p>
         </div>
+
         <button
           onClick={fetchTeams}
-          className="p-2 border border-gray-200 hover:bg-gray-50 rounded-xl text-gray-500 hover:text-gray-700 transition flex items-center justify-center"
-          title="Refresh List"
+          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition shrink-0 border border-gray-100 bg-white"
+          title="Refresh Teams"
         >
           <RefreshCw size={16} />
         </button>
@@ -184,7 +192,7 @@ export default function TeamsList() {
         <div className="space-y-4">
           <div className="h-24 bg-white border animate-pulse rounded-2xl"></div>
         </div>
-      ) : teams.length > 0 ? (
+      ) : displayTeams.length > 0 ? (
         <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
@@ -199,7 +207,7 @@ export default function TeamsList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
-                {teams.map((t) => (
+                {displayTeams.map((t) => (
                   <tr
                     key={t.id}
                     onClick={() => setSelectedTeam(t)}
