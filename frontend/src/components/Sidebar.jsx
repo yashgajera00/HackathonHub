@@ -75,6 +75,10 @@ export default function Sidebar({ isOpen, onClose }) {
           <Utensils size={18} />
           <span>My Food Passes</span>
         </NavLink>
+        <NavLink to="/teams" className={navLinkClass}>
+          <FolderLock size={18} />
+          <span>Submissions</span>
+        </NavLink>
 
         {/* Organizer Options */}
         {activeHackathonRole === 'Organizer' && (
@@ -133,7 +137,7 @@ export default function Sidebar({ isOpen, onClose }) {
             </NavLink>
             <NavLink to="/teams" className={navLinkClass}>
               <Trophy size={18} />
-              <span>Teams & Projects</span>
+              <span>Project Submissions</span>
             </NavLink>
           </>
         )}
