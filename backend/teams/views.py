@@ -449,8 +449,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         if not is_organizer and not request.user.is_superuser:
             return Response({"detail": "Only Hackathon Organizers can approve teams."}, status=status.HTTP_403_FORBIDDEN)
 
-        if team.status != 'Submitted':
-            return Response({"detail": "Only submitted teams can be approved."}, status=status.HTTP_400_BAD_REQUEST)
+        if team.status == 'Approved':
+            return Response({"detail": "Team is already approved."}, status=status.HTTP_400_BAD_REQUEST)
 
         team.status = 'Approved'
         team.save()
@@ -490,8 +490,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         if not is_organizer and not request.user.is_superuser:
             return Response({"detail": "Only Hackathon Organizers can reject teams."}, status=status.HTTP_403_FORBIDDEN)
 
-        if team.status != 'Submitted':
-            return Response({"detail": "Only submitted teams can be rejected."}, status=status.HTTP_400_BAD_REQUEST)
+        if team.status == 'Rejected':
+            return Response({"detail": "Team is already rejected."}, status=status.HTTP_400_BAD_REQUEST)
 
         team.status = 'Rejected'
         team.save()

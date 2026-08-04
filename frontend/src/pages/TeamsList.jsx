@@ -402,7 +402,7 @@ export default function TeamsList() {
               )}
 
               {/* Organizer Approval Panel */}
-              {isOrganizer && selectedTeam.status === 'Submitted' && (
+              {isOrganizer && (selectedTeam.status === 'Submitted' || selectedTeam.status === 'Pending' || !selectedTeam.status) && (
                 <div className="space-y-3 pt-2 border-t border-gray-100">
                   <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Team Selection Review</h4>
                   <div className="flex space-x-2">
