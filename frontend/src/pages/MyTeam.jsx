@@ -3,7 +3,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
-import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle, XCircle } from 'lucide-react';
 
 export default function MyTeam() {
   const { activeHackathon } = useHackathon();
