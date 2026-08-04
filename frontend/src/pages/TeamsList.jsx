@@ -195,6 +195,7 @@ export default function TeamsList() {
                   <th className="px-6 py-4">Members</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Project</th>
+                  <th className="px-6 py-4">Submission Link</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
@@ -229,6 +230,22 @@ export default function TeamsList() {
                         <span className="text-gray-700 truncate max-w-[150px] block">{t.project_title}</span>
                       ) : (
                         <span className="text-gray-400 italic">Not submitted</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {t.project_submission_link ? (
+                        <a
+                          href={t.project_submission_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-bold hover:underline"
+                        >
+                          <span>View Link</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 italic">No link</span>
                       )}
                     </td>
                   </tr>
