@@ -133,7 +133,7 @@ export default function TeamsList() {
       const response = await api.post(`/teams/${teamId}/approve/`);
       showToast('Team approved & selected for hackathon!', 'success');
       setTeams(prev => prev.map(t => t.id === teamId ? response.data : t));
-      if (selectedTeam?.id === teamId) setSelectedTeam(response.data);
+      setSelectedTeam(null);
     } catch (err) {
       console.error(err);
       showToast('Failed to approve team.', 'error');
@@ -145,7 +145,7 @@ export default function TeamsList() {
       const response = await api.post(`/teams/${teamId}/reject/`);
       showToast('Team selection rejected.', 'success');
       setTeams(prev => prev.map(t => t.id === teamId ? response.data : t));
-      if (selectedTeam?.id === teamId) setSelectedTeam(response.data);
+      setSelectedTeam(null);
     } catch (err) {
       console.error(err);
       showToast('Failed to reject team.', 'error');
