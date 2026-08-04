@@ -644,8 +644,21 @@ export default function MyTeam() {
         </div>
       )}
 
-      {/* Invite Peer Form (Leader only) */}
-      {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
+      {/* Rejected Alert Banner */}
+      {team.status === 'Rejected' && (
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 shadow-xs text-rose-900 space-y-2">
+          <div className="flex items-center space-x-2 font-bold text-sm text-rose-700">
+            <XCircle size={18} className="shrink-0 text-rose-600" />
+            <span>Team Selection Rejected</span>
+          </div>
+          <p className="text-xs text-rose-800 leading-relaxed font-medium">
+            Your team submission was declined by the hackathon organizers. Member invitations and team resubmission are currently disabled.
+          </p>
+        </div>
+      )}
+
+      {/* Invite Peer Form (Leader only, Pending status only) */}
+      {isLeader && team.status === 'Pending' && (
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-gray-900">Invite a Peer</h3>
           <form onSubmit={handleInviteUser} className="space-y-3 text-xs font-semibold text-gray-400">
@@ -720,8 +733,8 @@ export default function MyTeam() {
         </div>
       )}
 
-      {/* Submit Team Panel (Leader only) */}
-      {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && (
+      {/* Submit Team Panel (Leader only, Pending status only) */}
+      {isLeader && team.status === 'Pending' && (
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-gray-900">Submit Team</h3>
           <p className="text-xs text-gray-500 leading-relaxed">
