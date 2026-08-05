@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
-import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle, XCircle, Lock, Tag, Sparkles, FileText } from 'lucide-react';
+import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle, XCircle, Lock, Tag, Sparkles, FileText, ArrowRight } from 'lucide-react';
 
 export default function MyTeam() {
   const { activeHackathon } = useHackathon();
