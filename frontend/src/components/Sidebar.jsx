@@ -1,17 +1,63 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHackathon } from '../context/HackathonContext';
+import { useToast } from '../context/ToastContext';
+import api from '../services/api';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Trophy, Calendar, Users, Megaphone, BookOpen, Award, UserCheck, QrCode,
-  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare, Utensils, Tag
+  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare, Utensils, Tag, CheckCircle, RefreshCw
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth();
-  const { activeHackathon, activeHackathonRole, clearActiveHackathon } = useHackathon();
+  const { activeHackathon, activeHackathonRole, clearActiveHackathon, refreshHackathonDetails } = useHackathon();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [userRegistration, setUserRegistration] = useState(null);
+  const [registering, setRegistering] = useState(false);
+
+  useEffect(() => {
+    if (activeHackathon) {
+      fetchRegistration();
+    } else {
+      setUserRegistration(null);
+    }
+  }, [activeHackathon?.id, activeHackathonRole]);
+
+  const fetchRegistration = async () => {
+    try {
+      const response = await api.get('/registrations/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      const regs = response.data.results || response.data;
+      if (regs.length > 0) {
+        setUserRegistration(regs[0]);
+      } else {
+        setUserRegistration(null);
+      }
+    } catch (e) {
+      setUserRegistration(null);
+    }
+  };
+
+  const handleRegisterFromSidebar = async () => {
+    if (!activeHackathon) return;
+    setRegistering(true);
+    try {
+      await api.post('/registrations/', { hackathon: activeHackathon.id });
+      showToast('Registration submitted successfully!', 'success');
+      await fetchRegistration();
+      if (refreshHackathonDetails) refreshHackathonDetails();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to submit registration.', 'error');
+    } finally {
+      setRegistering(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -20,6 +66,10 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const isScheduleActive = location.pathname === '/dashboard' && currentTab !== 'titles';
   const isTitlesActive = (location.pathname === '/dashboard' || location.pathname === '/problem-statements') && currentTab === 'titles';
+
+  const isStaff = ['Organizer', 'Volunteer', 'Judge', 'Mentor'].includes(activeHackathonRole) || user.is_superuser;
+  const isRegistered = Boolean(activeHackathonRole) || Boolean(userRegistration);
+  const isTeamApproved = activeHackathon?.active_team_status === 'Approved';
 
   // Active styles for NavLink
   const navLinkClass = ({ isActive }) =>
@@ -53,7 +103,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <h4 className="text-sm font-bold text-gray-800 truncate">{activeHackathon.title}</h4>
         <div className="flex items-center justify-between mt-1">
           <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded">
-            {activeHackathonRole}
+            {activeHackathonRole || (userRegistration ? `Reg: ${userRegistration.status}` : 'Not Registered')}
           </span>
           <span className="text-[10px] text-gray-400 font-medium">
             {activeHackathon.status}
@@ -63,7 +113,8 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Role specific links */}
       <div className="space-y-1.5">
-        {(activeHackathonRole !== 'Participant' || activeHackathon?.active_team_status === 'Approved') && (
+        {!isRegistered && !isStaff ? (
+          /* Unregistered User: Show only first two options & Register button */
           <>
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
               Hackathon Menu
@@ -90,147 +141,191 @@ export default function Sidebar({ isOpen, onClose }) {
               <Tag size={18} />
               <span>Problem Statements</span>
             </NavLink>
-            <NavLink to="/announcements" className={navLinkClass}>
-              <Megaphone size={18} />
-              <span>Announcements</span>
-            </NavLink>
-            <NavLink to="/food-passes" className={navLinkClass}>
-              <Utensils size={18} />
-              <span>My Food Passes</span>
-            </NavLink>
-            <NavLink to="/submissions" className={navLinkClass}>
-              <FolderLock size={18} />
-              <span>Submissions</span>
-            </NavLink>
-          </>
-        )}
 
-        {/* Organizer Options */}
-        {activeHackathonRole === 'Organizer' && (
-          <>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
-              Organizer Panel
+            <div className="pt-3 px-1">
+              <button
+                onClick={handleRegisterFromSidebar}
+                disabled={registering}
+                className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {registering ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                <span>Register to Participate</span>
+              </button>
             </div>
-            <NavLink to="/organizer-dashboard" className={navLinkClass}>
-              <LayoutDashboard size={18} />
-              <span>Analytics & Logs</span>
-            </NavLink>
-            <NavLink to="/edit-hackathon" className={navLinkClass}>
-              <Settings size={18} />
-              <span>Settings</span>
-            </NavLink>
-            <NavLink 
-              to="/dashboard?tab=titles" 
-              className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
-                isTitlesActive
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <Tag size={18} />
-              <span>Problem Statements</span>
-            </NavLink>
-            <NavLink to="/registrations" className={navLinkClass}>
-              <UserCheck size={18} />
-              <span>Registrations</span>
-            </NavLink>
-            <NavLink to="/qr-checkin" className={navLinkClass}>
-              <QrCode size={18} />
-              <span>Scan QR Check-in</span>
-            </NavLink>
-            <NavLink to="/members" className={navLinkClass}>
-              <Users size={18} />
-              <span>Staff & Roles</span>
-            </NavLink>
-            <NavLink to="/submissions" className={navLinkClass}>
-              <FolderLock size={18} />
-              <span>Project Submissions</span>
-            </NavLink>
-            <NavLink to="/teams" className={navLinkClass}>
-              <Trophy size={18} />
-              <span>Teams & Projects</span>
-            </NavLink>
-            <NavLink to="/food-management" className={navLinkClass}>
-              <Utensils size={18} />
-              <span>Food & Coupons</span>
-            </NavLink>
           </>
-        )}
-
-        {/* Volunteer Options */}
-        {activeHackathonRole === 'Volunteer' && (
+        ) : (
+          /* Registered User or Staff */
           <>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
-              Volunteer Panel
-            </div>
-            <NavLink to="/registrations" className={navLinkClass}>
-              <UserCheck size={18} />
-              <span>Attendance list</span>
-            </NavLink>
-            <NavLink to="/qr-checkin" className={navLinkClass}>
-              <QrCode size={18} />
-              <span>Scan QR Check-in</span>
-            </NavLink>
-            <NavLink to="/food-management" className={navLinkClass}>
-              <Utensils size={18} />
-              <span>Food QR Scanner</span>
-            </NavLink>
-            <NavLink to="/submissions" className={navLinkClass}>
-              <FolderLock size={18} />
-              <span>Project Submissions</span>
-            </NavLink>
-          </>
-        )}
+            {(isStaff || isTeamApproved) && (
+              <>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
+                  Hackathon Menu
+                </div>
+                <NavLink 
+                  to="/dashboard" 
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                    isScheduleActive
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Calendar size={18} />
+                  <span>Details & Schedule</span>
+                </NavLink>
+                <NavLink 
+                  to="/dashboard?tab=titles" 
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                    isTitlesActive
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Tag size={18} />
+                  <span>Problem Statements</span>
+                </NavLink>
+                <NavLink to="/announcements" className={navLinkClass}>
+                  <Megaphone size={18} />
+                  <span>Announcements</span>
+                </NavLink>
+                <NavLink to="/food-passes" className={navLinkClass}>
+                  <Utensils size={18} />
+                  <span>My Food Passes</span>
+                </NavLink>
+                <NavLink to="/submissions" className={navLinkClass}>
+                  <FolderLock size={18} />
+                  <span>Submissions</span>
+                </NavLink>
+              </>
+            )}
 
-        {/* Judge Options */}
-        {activeHackathonRole === 'Judge' && (
-          <>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
-              Judging Portal
-            </div>
-            <NavLink to="/judging" className={navLinkClass}>
-              <Award size={18} />
-              <span>Evaluate Teams</span>
-            </NavLink>
-            <NavLink to="/leaderboard" className={navLinkClass}>
-              <Trophy size={18} />
-              <span>Leaderboard</span>
-            </NavLink>
-          </>
-        )}
+            {/* Organizer Options */}
+            {activeHackathonRole === 'Organizer' && (
+              <>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
+                  Organizer Panel
+                </div>
+                <NavLink to="/organizer-dashboard" className={navLinkClass}>
+                  <LayoutDashboard size={18} />
+                  <span>Analytics & Logs</span>
+                </NavLink>
+                <NavLink to="/edit-hackathon" className={navLinkClass}>
+                  <Settings size={18} />
+                  <span>Settings</span>
+                </NavLink>
+                <NavLink 
+                  to="/dashboard?tab=titles" 
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                    isTitlesActive
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Tag size={18} />
+                  <span>Problem Statements</span>
+                </NavLink>
+                <NavLink to="/registrations" className={navLinkClass}>
+                  <UserCheck size={18} />
+                  <span>Registrations</span>
+                </NavLink>
+                <NavLink to="/qr-checkin" className={navLinkClass}>
+                  <QrCode size={18} />
+                  <span>Scan QR Check-in</span>
+                </NavLink>
+                <NavLink to="/members" className={navLinkClass}>
+                  <Users size={18} />
+                  <span>Staff & Roles</span>
+                </NavLink>
+                <NavLink to="/submissions" className={navLinkClass}>
+                  <FolderLock size={18} />
+                  <span>Project Submissions</span>
+                </NavLink>
+                <NavLink to="/teams" className={navLinkClass}>
+                  <Trophy size={18} />
+                  <span>Teams & Projects</span>
+                </NavLink>
+                <NavLink to="/food-management" className={navLinkClass}>
+                  <Utensils size={18} />
+                  <span>Food & Coupons</span>
+                </NavLink>
+              </>
+            )}
 
-        {/* Mentor Options */}
-        {activeHackathonRole === 'Mentor' && (
-          <>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
-              Mentor Panel
-            </div>
-            <NavLink to="/teams" className={navLinkClass}>
-              <Users size={18} />
-              <span>Teams Feed</span>
-            </NavLink>
-          </>
-        )}
+            {/* Volunteer Options */}
+            {activeHackathonRole === 'Volunteer' && (
+              <>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
+                  Volunteer Panel
+                </div>
+                <NavLink to="/registrations" className={navLinkClass}>
+                  <UserCheck size={18} />
+                  <span>Attendance list</span>
+                </NavLink>
+                <NavLink to="/qr-checkin" className={navLinkClass}>
+                  <QrCode size={18} />
+                  <span>Scan QR Check-in</span>
+                </NavLink>
+                <NavLink to="/food-management" className={navLinkClass}>
+                  <Utensils size={18} />
+                  <span>Food QR Scanner</span>
+                </NavLink>
+                <NavLink to="/submissions" className={navLinkClass}>
+                  <FolderLock size={18} />
+                  <span>Project Submissions</span>
+                </NavLink>
+              </>
+            )}
 
-        {/* Participant Options */}
-        {activeHackathonRole === 'Participant' && (
-          <>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
-              Participant Panel
-            </div>
-            <NavLink to="/my-team" className={navLinkClass}>
-              <Users size={18} />
-              <span>My Team</span>
-            </NavLink>
-            <NavLink to="/team-chat" className={navLinkClass}>
-              <MessageSquare size={18} />
-              <span>Team Chat</span>
-            </NavLink>
-            {activeHackathon?.active_team_status === 'Approved' && (
-              <NavLink to="/leaderboard" className={navLinkClass}>
-                <Trophy size={18} />
-                <span>Leaderboard</span>
-              </NavLink>
+            {/* Judge Options */}
+            {activeHackathonRole === 'Judge' && (
+              <>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
+                  Judging Portal
+                </div>
+                <NavLink to="/judging" className={navLinkClass}>
+                  <Award size={18} />
+                  <span>Evaluate Teams</span>
+                </NavLink>
+                <NavLink to="/leaderboard" className={navLinkClass}>
+                  <Trophy size={18} />
+                  <span>Leaderboard</span>
+                </NavLink>
+              </>
+            )}
+
+            {/* Mentor Options */}
+            {activeHackathonRole === 'Mentor' && (
+              <>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
+                  Mentor Panel
+                </div>
+                <NavLink to="/teams" className={navLinkClass}>
+                  <Users size={18} />
+                  <span>Teams Feed</span>
+                </NavLink>
+              </>
+            )}
+
+            {/* Participant Options */}
+            {(!isStaff || activeHackathonRole === 'Participant') && (
+              <>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-4 mb-2">
+                  Participant Panel
+                </div>
+                <NavLink to="/my-team" className={navLinkClass}>
+                  <Users size={18} />
+                  <span>My Team</span>
+                </NavLink>
+                <NavLink to="/team-chat" className={navLinkClass}>
+                  <MessageSquare size={18} />
+                  <span>Team Chat</span>
+                </NavLink>
+                {isTeamApproved && (
+                  <NavLink to="/leaderboard" className={navLinkClass}>
+                    <Trophy size={18} />
+                    <span>Leaderboard</span>
+                  </NavLink>
+                )}
+              </>
             )}
           </>
         )}
