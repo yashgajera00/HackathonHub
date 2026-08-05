@@ -29,6 +29,7 @@ class Hackathon(models.Model):
     max_team_size = models.IntegerField(default=4)
     min_team_size = models.IntegerField(default=1)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Draft')
+    is_problem_statements_released = models.BooleanField(default=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_hackathons')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

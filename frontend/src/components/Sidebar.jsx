@@ -130,14 +130,7 @@ export default function Sidebar({ isOpen, onClose }) {
               <Calendar size={18} />
               <span>Details & Schedule</span>
             </NavLink>
-            <NavLink 
-              to="/dashboard?tab=titles" 
-              className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
-                isTitlesActive
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
+            <NavLink to="/problem-statements" className={navLinkClass}>
               <Tag size={18} />
               <span>Problem Statements</span>
             </NavLink>
@@ -172,14 +165,7 @@ export default function Sidebar({ isOpen, onClose }) {
                   <Calendar size={18} />
                   <span>Details & Schedule</span>
                 </NavLink>
-                <NavLink 
-                  to="/dashboard?tab=titles" 
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
-                    isTitlesActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
+                <NavLink to="/problem-statements" className={navLinkClass}>
                   <Tag size={18} />
                   <span>Problem Statements</span>
                 </NavLink>
@@ -212,14 +198,7 @@ export default function Sidebar({ isOpen, onClose }) {
                   <Settings size={18} />
                   <span>Settings</span>
                 </NavLink>
-                <NavLink 
-                  to="/dashboard?tab=titles" 
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
-                    isTitlesActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
+                <NavLink to="/problem-statements" className={navLinkClass}>
                   <Tag size={18} />
                   <span>Problem Statements</span>
                 </NavLink>

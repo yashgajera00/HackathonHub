@@ -19,7 +19,7 @@ class HackathonSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'description', 'banner', 'logo', 'publish_time',
             'start_date', 'end_date', 'registration_start', 'registration_end',
             'venue', 'city', 'state', 'country', 'max_team_size', 'min_team_size',
-            'status', 'created_by', 'created_by_username', 'created_at', 'updated_at', 'role',
+            'status', 'is_problem_statements_released', 'created_by', 'created_by_username', 'created_at', 'updated_at', 'role',
             'active_team_status'
         )
         read_only_fields = ('id', 'slug', 'created_by', 'created_at', 'updated_at', 'role', 'active_team_status')

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, status, filters
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
 from hackathons.models import Hackathon, HackathonTitle
@@ -82,6 +83,25 @@ class HackathonViewSet(viewsets.ModelViewSet):
             hackathon=hackathon, 
             details=f"Created hackathon: {hackathon.title}"
         )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsHackathonOrganizer])
+    def toggle_release_titles(self, request, pk=None):
+        hackathon = self.get_object()
+        hackathon.is_problem_statements_released = not hackathon.is_problem_statements_released
+        hackathon.save()
+        
+        status_str = "released" if hackathon.is_problem_statements_released else "hidden"
+        log_activity(
+            request.user,
+            f"Toggled problem statements release status ({status_str})",
+            hackathon=hackathon,
+            details=f"Problem statements are now {status_str} for {hackathon.title}"
+        )
+
+        return Response({
+            "detail": f"Problem statements are now {status_str} for participants.",
+            "is_problem_statements_released": hackathon.is_problem_statements_released
+        })
 
 
 class HackathonTitleViewSet(viewsets.ModelViewSet):

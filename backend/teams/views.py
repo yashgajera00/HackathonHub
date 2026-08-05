@@ -523,7 +523,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def select_title(self, request, pk=None):
         """
-        Members of an Approved team can select a problem statement/title for their team.
+        Only Team Leader of an Approved team can select a problem statement once released by organizers.
         """
         team = self.get_object()
         
@@ -534,10 +534,18 @@ class TeamViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Check membership
-        is_member = team.members.filter(user=request.user).exists()
-        if not is_member and not request.user.is_superuser:
-            return Response({"detail": "Only team members can select a title for the team."}, status=status.HTTP_403_FORBIDDEN)
+        # Check if problem statements are released by organizers
+        if not team.hackathon.is_problem_statements_released and not request.user.is_superuser:
+            return Response(
+                {"detail": "Problem statements have not been released by organizers yet."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check Team Leader role
+        from teams.models import TeamMember
+        is_leader = (team.leader == request.user) or TeamMember.objects.filter(team=team, user=request.user, role='Leader').exists()
+        if not is_leader and not request.user.is_superuser:
+            return Response({"detail": "Only the Team Leader can select a problem statement for the team."}, status=status.HTTP_403_FORBIDDEN)
 
         title_id = request.data.get('title_id')
         if not title_id:
@@ -563,7 +571,7 @@ class TeamViewSet(viewsets.ModelViewSet):
                 Notification.objects.create(
                     user=member.user,
                     title="Team Title Selected",
-                    message=f"Your team project title has been set to '{title_obj.title}'."
+                    message=f"Your team leader set project title to '{title_obj.title}'."
                 )
 
         return Response(self.get_serializer(team).data)

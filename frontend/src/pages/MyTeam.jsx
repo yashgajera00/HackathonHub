@@ -658,19 +658,33 @@ export default function MyTeam() {
               <Tag size={18} className="text-blue-600" />
               <h3 className="text-base font-bold text-gray-900">Project Title / Problem Statement</h3>
             </div>
-            {(team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
+            {!activeHackathon?.is_problem_statements_released ? (
+              <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-amber-50 text-amber-800 border border-amber-200">
+                Unreleased by Organizers
+              </span>
+            ) : (team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
               <span className="px-3 py-1 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
                 <CheckCircle2 size={12} className="text-emerald-600" />
                 <span>TASK DONE</span>
               </span>
             ) : (
               <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-blue-50 text-blue-800 border border-blue-200">
-                Action Required
+                {team.is_leader ? 'Leader Action Required' : 'Awaiting Leader Selection'}
               </span>
             )}
           </div>
 
-          {(team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
+          {!activeHackathon?.is_problem_statements_released ? (
+            <div className="p-4 bg-amber-50/50 border border-amber-200/80 rounded-2xl text-xs text-amber-800 space-y-1">
+              <div className="font-bold flex items-center space-x-1.5">
+                <Lock size={14} className="text-amber-600" />
+                <span>Problem Statements Not Released Yet</span>
+              </div>
+              <p className="text-[11px] text-amber-700 leading-relaxed">
+                The hackathon organizers have not released problem statements yet. Once released by organizers, your Team Leader can select a problem statement here.
+              </p>
+            </div>
+          ) : (team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
             <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
               <div className="flex items-start justify-between">
                 <div>
@@ -685,19 +699,21 @@ export default function MyTeam() {
                   )}
                 </div>
               </div>
-              <div className="pt-2 flex justify-end">
-                <button
-                  onClick={() => setShowChangeTitle(true)}
-                  className="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-bold rounded-xl text-xs transition"
-                >
-                  Change Selected Title
-                </button>
-              </div>
+              {team.is_leader && (
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={() => setShowChangeTitle(true)}
+                    className="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-bold rounded-xl text-xs transition"
+                  >
+                    Change Selected Title
+                  </button>
+                </div>
+              )}
             </div>
-          ) : (
+          ) : team.is_leader ? (
             <form onSubmit={handleSelectTitle} className="space-y-4">
               <p className="text-xs text-gray-500">
-                Choose one of the problem titles provided by the hackathon owner for your team:
+                As the <strong>Team Leader</strong>, choose one of the problem statements released by the organizers:
               </p>
 
               {availableTitles.length > 0 ? (
@@ -757,20 +773,19 @@ export default function MyTeam() {
                 )}
               </div>
             </form>
+          ) : (
+            <div className="p-4 bg-blue-50/50 border border-blue-200/80 rounded-2xl text-xs text-blue-800 space-y-1">
+              <div className="font-bold">Waiting for Team Leader</div>
+              <p className="text-[11px] text-blue-700 leading-relaxed">
+                Only your Team Leader can choose the problem statement for your team. Once selected, your assigned title will appear here with the Task Done status!
+              </p>
+            </div>
           )}
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Lock size={16} className="text-gray-400" />
-              <h3 className="text-sm font-bold text-gray-800">Problem Title Selection</h3>
-            </div>
-            <span className="px-2.5 py-0.5 rounded-full font-bold text-[9px] bg-amber-50 text-amber-800 border border-amber-200">
-              Awaiting Team Approval
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 leading-relaxed font-medium">
+        <div className="bg-gray-50 border border-gray-200/80 rounded-2xl p-5 text-center text-xs text-gray-500 space-y-1">
+          <div className="font-bold text-gray-700">Problem Title Selection Locked</div>
+          <p className="text-[11px] text-gray-400">
             Title selection will become available here once your team submission has been <strong className="text-gray-700">Approved</strong> by the hackathon organizers.
           </p>
         </div>
