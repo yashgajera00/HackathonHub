@@ -520,6 +520,23 @@ class TeamViewSet(viewsets.ModelViewSet):
 
         return Response(self.get_serializer(team).data)
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def my_team(self, request):
+        """
+        Returns the active team for the authenticated user in the specified hackathon.
+        """
+        hackathon_id = request.query_params.get('hackathon_id')
+        queryset = TeamMember.objects.filter(user=request.user)
+        if hackathon_id:
+            queryset = queryset.filter(hackathon_id=hackathon_id)
+
+        member = queryset.select_related('team').first()
+        if not member or not member.team:
+            return Response({"detail": "No team found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(member.team)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'])
     def select_title(self, request, pk=None):
         """
@@ -550,7 +567,7 @@ class TeamViewSet(viewsets.ModelViewSet):
 
         # Check Team Leader role
         from teams.models import TeamMember
-        is_leader = (team.leader == request.user) or TeamMember.objects.filter(team=team, user=request.user, role='Leader').exists()
+        is_leader = (team.created_by == request.user) or TeamMember.objects.filter(team=team, user=request.user, role='Leader').exists()
         if not is_leader and not request.user.is_superuser:
             return Response({"detail": "Only the Team Leader can select a problem statement for the team."}, status=status.HTTP_403_FORBIDDEN)
 
