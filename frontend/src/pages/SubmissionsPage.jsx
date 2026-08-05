@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
-import { Trophy, ExternalLink, Search, Filter, CheckCircle, XCircle, Award, RefreshCw, Plus, Star, Users, FileText, CheckCircle2 } from 'lucide-react';
+import { Trophy, ExternalLink, Search, Filter, CheckCircle, XCircle, Award, RefreshCw, Plus, Star, Users, FileText, CheckCircle2, Lock } from 'lucide-react';
 
 export default function SubmissionsPage() {
   const { activeHackathon, activeHackathonRole } = useHackathon();
@@ -141,8 +141,9 @@ export default function SubmissionsPage() {
     setModalMode(mode);
 
     if (mode === 'submit') {
+      const assignedTitle = teamObj.selected_title_details?.title || teamObj.project_title || teamObj.selected_title || '';
       setSubmitForm({
-        project_title: teamObj.project_title || '',
+        project_title: assignedTitle,
         project_description: teamObj.project_description || '',
         project_submission_link: teamObj.project_submission_link || ''
       });
@@ -438,15 +439,28 @@ export default function SubmissionsPage() {
             {modalMode === 'submit' && (
               <form onSubmit={handleProjectSubmit} className="space-y-4 text-xs font-semibold text-gray-600">
                 <div>
-                  <label className="block mb-1 text-[10px] text-gray-400 uppercase tracking-wider">Project Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={submitForm.project_title}
-                    onChange={(e) => setSubmitForm({ ...submitForm, project_title: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl bg-gray-50 focus:bg-white text-gray-800 text-xs"
-                    placeholder="Ex: HackathonHub AI Platform"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Project Title</label>
+                    <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 flex items-center space-x-1">
+                      <Lock size={10} className="text-amber-600" />
+                      <span>Locked to Selected Problem Statement</span>
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      readOnly
+                      disabled
+                      value={submitForm.project_title}
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-100/90 text-gray-800 text-xs font-bold cursor-not-allowed select-none pr-8"
+                      placeholder="Selected problem statement title"
+                    />
+                    <Lock size={14} className="absolute right-3 top-3 text-gray-400" />
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    This title is fetched from your team's locked problem statement and cannot be changed here.
+                  </p>
                 </div>
 
                 <div>
