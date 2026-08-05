@@ -1,18 +1,25 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useHackathon } from '../context/HackathonContext';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Trophy, Calendar, Users, Megaphone, BookOpen, Award, UserCheck, QrCode,
-  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare, Utensils
+  History, Settings, FolderLock, PlusCircle, LayoutDashboard, ChevronLeft, Bell, MessageSquare, Utensils, Tag
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user } = useAuth();
   const { activeHackathon, activeHackathonRole, clearActiveHackathon } = useHackathon();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!user) return null;
+
+  const searchParams = new URLSearchParams(location.search);
+  const currentTab = searchParams.get('tab');
+
+  const isScheduleActive = location.pathname === '/dashboard' && currentTab !== 'titles';
+  const isTitlesActive = (location.pathname === '/dashboard' || location.pathname === '/problem-statements') && currentTab === 'titles';
 
   // Active styles for NavLink
   const navLinkClass = ({ isActive }) =>
@@ -61,9 +68,27 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
         {(activeHackathonRole !== 'Participant' || activeHackathon?.active_team_status === 'Approved') && (
           <>
-            <NavLink to="/dashboard" end className={navLinkClass}>
+            <NavLink 
+              to="/dashboard" 
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                isScheduleActive
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
               <Calendar size={18} />
               <span>Details & Schedule</span>
+            </NavLink>
+            <NavLink 
+              to="/dashboard?tab=titles" 
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                isTitlesActive
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <Tag size={18} />
+              <span>Problem Statements</span>
             </NavLink>
             <NavLink to="/announcements" className={navLinkClass}>
               <Megaphone size={18} />
@@ -93,6 +118,17 @@ export default function Sidebar({ isOpen, onClose }) {
             <NavLink to="/edit-hackathon" className={navLinkClass}>
               <Settings size={18} />
               <span>Settings</span>
+            </NavLink>
+            <NavLink 
+              to="/dashboard?tab=titles" 
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                isTitlesActive
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <Tag size={18} />
+              <span>Problem Statements</span>
             </NavLink>
             <NavLink to="/registrations" className={navLinkClass}>
               <UserCheck size={18} />

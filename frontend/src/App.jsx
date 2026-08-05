@@ -173,6 +173,7 @@ function App() {
                   <Route path="/create-hackathon" element={<CreateHackathon />} />
                   
                   {/* General Hackathon routes */}
+                  <Route path="/problem-statements" element={<Navigate to="/dashboard?tab=titles" replace />} />
                   <Route path="/announcements" element={<AnnouncementsList />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/my-team" element={<MyTeam />} />

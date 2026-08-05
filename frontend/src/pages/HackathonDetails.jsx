@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
@@ -13,8 +14,20 @@ export default function HackathonDetails() {
   const { activeHackathon, activeHackathonRole, refreshHackathonDetails } = useHackathon();
   const { showToast } = useToast();
   const { confirm } = useConfirm();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [activeTab, setActiveTab] = useState('schedule');
+  const initialTab = searchParams.get('tab') || 'schedule';
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') || 'schedule';
+    setActiveTab(tabFromUrl);
+  }, [searchParams]);
+
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    setSearchParams({ tab: tabName });
+  };
   const [schedule, setSchedule] = useState([]);
   const [rules, setRules] = useState([]);
   const [titles, setTitles] = useState([]);
@@ -284,21 +297,21 @@ export default function HackathonDetails() {
       {/* Tabs Menu */}
       <div className="border-b border-gray-200 flex space-x-4 md:space-x-6 text-sm font-semibold overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         <button
-          onClick={() => setActiveTab('schedule')}
+          onClick={() => handleTabChange('schedule')}
           className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'schedule' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
         >
           <span>Schedule</span>
           {activeTab === 'schedule' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
         </button>
         <button
-          onClick={() => setActiveTab('rules')}
+          onClick={() => handleTabChange('rules')}
           className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'rules' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
         >
           <span>Rules</span>
           {activeTab === 'rules' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
         </button>
         <button
-          onClick={() => setActiveTab('titles')}
+          onClick={() => handleTabChange('titles')}
           className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'titles' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
         >
           <span>Problem Titles</span>
@@ -306,7 +319,7 @@ export default function HackathonDetails() {
         </button>
         {userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
           <button
-            onClick={() => setActiveTab('ticket')}
+            onClick={() => handleTabChange('ticket')}
             className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'ticket' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
           >
             <span>Check-in QR Ticket</span>
