@@ -62,6 +62,24 @@ export default function HackathonDetails() {
     description: '',
   });
 
+  const [registering, setRegistering] = useState(false);
+
+  const handleRegister = async () => {
+    if (!activeHackathon) return;
+    setRegistering(true);
+    try {
+      await api.post('/registrations/', { hackathon: activeHackathon.id });
+      showToast('Registration submitted successfully!', 'success');
+      await fetchUserRegistration();
+      if (refreshHackathonDetails) refreshHackathonDetails();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to submit registration.', 'error');
+    } finally {
+      setRegistering(false);
+    }
+  };
+
   useEffect(() => {
     if (activeHackathon) {
       fetchSchedule(false);
@@ -293,6 +311,56 @@ export default function HackathonDetails() {
           </div>
         </div>
       </div>
+
+      {/* Registration Status Banner / Action Card */}
+      {!userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
+        <div className="bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-3xl p-6 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-md">
+              <Sparkles size={12} />
+              <span>Hackathon Registration</span>
+            </div>
+            <h3 className="text-lg font-bold">You are not registered for {activeHackathon.title} yet.</h3>
+            <p className="text-xs text-blue-100 font-medium">
+              Register to join this hackathon, form or join a team, and select problem statements!
+            </p>
+          </div>
+          <button
+            onClick={handleRegister}
+            disabled={registering}
+            className="px-6 py-3 bg-white hover:bg-blue-50 text-blue-700 font-bold rounded-2xl text-xs transition shadow-lg shrink-0 flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+          >
+            {registering ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle size={16} />}
+            <span>Register to Participate</span>
+          </button>
+        </div>
+      )}
+
+      {userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-xs flex items-center justify-between text-xs">
+          <div className="flex items-center space-x-2">
+            <ShieldCheck size={18} className={userRegistration.status === 'Approved' ? "text-emerald-500" : "text-amber-500"} />
+            <span className="font-bold text-gray-700">
+              Registration Status:
+            </span>
+            <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+              userRegistration.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+              userRegistration.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+              'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {userRegistration.status}
+            </span>
+          </div>
+          {userRegistration.status === 'Approved' && (
+            <button
+              onClick={() => handleTabChange('ticket')}
+              className="text-blue-600 font-bold hover:underline"
+            >
+              View Check-in QR Ticket &rarr;
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Tabs Menu */}
       <div className="border-b border-gray-200 flex space-x-4 md:space-x-6 text-sm font-semibold overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">

@@ -39,16 +39,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
         if Registration.objects.filter(hackathon=hackathon, user=user).exists():
             raise serializers.ValidationError({"detail": "You have already registered for this hackathon."})
 
-        # Check if registration is open
-        now = timezone.now()
-        if hackathon.registration_start and now < hackathon.registration_start:
-            raise serializers.ValidationError({"detail": "Registration has not started yet."})
-        if hackathon.registration_end and now > hackathon.registration_end:
-            raise serializers.ValidationError({"detail": "Registration has closed."})
-
-        # Check status of hackathon (must be 'Registration Open' or 'Published')
-        if hackathon.status not in ['Published', 'Registration Open']:
-            raise serializers.ValidationError({"detail": "Registration is not open for this hackathon status."})
+        # Check status of hackathon (must not be Cancelled or Draft)
+        if hackathon.status in ['Cancelled', 'Draft']:
+            raise serializers.ValidationError({"detail": "Registration is not available for this hackathon."})
 
         return data
 

@@ -63,11 +63,11 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Role specific links */}
       <div className="space-y-1.5">
-        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
-          Hackathon Menu
-        </div>
         {(activeHackathonRole !== 'Participant' || activeHackathon?.active_team_status === 'Approved') && (
           <>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
+              Hackathon Menu
+            </div>
             <NavLink 
               to="/dashboard" 
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
@@ -94,16 +94,16 @@ export default function Sidebar({ isOpen, onClose }) {
               <Megaphone size={18} />
               <span>Announcements</span>
             </NavLink>
+            <NavLink to="/food-passes" className={navLinkClass}>
+              <Utensils size={18} />
+              <span>My Food Passes</span>
+            </NavLink>
+            <NavLink to="/submissions" className={navLinkClass}>
+              <FolderLock size={18} />
+              <span>Submissions</span>
+            </NavLink>
           </>
         )}
-        <NavLink to="/food-passes" className={navLinkClass}>
-          <Utensils size={18} />
-          <span>My Food Passes</span>
-        </NavLink>
-        <NavLink to="/submissions" className={navLinkClass}>
-          <FolderLock size={18} />
-          <span>Submissions</span>
-        </NavLink>
 
         {/* Organizer Options */}
         {activeHackathonRole === 'Organizer' && (

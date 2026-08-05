@@ -275,7 +275,7 @@ export default function HackathonsList() {
                           <span className="text-xs text-gray-400 font-semibold">Awaiting Action</span>
                         )}
                       </>
-                    ) : h.status === 'Registration Open' ? (
+                    ) : h.status !== 'Cancelled' && h.status !== 'Draft' && h.status !== 'Completed' ? (
                       <>
                         <span className="text-xs text-gray-400">Not Registered</span>
                         <button
