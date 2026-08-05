@@ -70,6 +70,8 @@ export default function Sidebar({ isOpen, onClose }) {
   const isStaff = ['Organizer', 'Volunteer', 'Judge', 'Mentor'].includes(activeHackathonRole) || user.is_superuser;
   const isRegistered = Boolean(activeHackathonRole) || Boolean(userRegistration);
   const isTeamApproved = activeHackathon?.active_team_status === 'Approved';
+  const isReleased = Boolean(activeHackathon?.is_problem_statements_released);
+  const hasSelectedTitle = Boolean(activeHackathon?.active_team_has_selected_title);
 
   // Active styles for NavLink
   const navLinkClass = ({ isActive }) =>
@@ -151,36 +153,53 @@ export default function Sidebar({ isOpen, onClose }) {
           <>
             {(isStaff || isTeamApproved) && (
               <>
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
-                  Hackathon Menu
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2 flex items-center justify-between">
+                  <span>Hackathon Menu</span>
+                  {!isStaff && isReleased && !hasSelectedTitle && (
+                    <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">
+                      Title Required
+                    </span>
+                  )}
                 </div>
-                <NavLink 
-                  to="/dashboard" 
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
-                    isScheduleActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <Calendar size={18} />
-                  <span>Details & Schedule</span>
-                </NavLink>
+
+                {(isStaff || !isReleased || hasSelectedTitle) && (
+                  <NavLink 
+                    to="/dashboard" 
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 ${
+                      isScheduleActive
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Calendar size={18} />
+                    <span>Details & Schedule</span>
+                  </NavLink>
+                )}
+
                 <NavLink to="/problem-statements" className={navLinkClass}>
                   <Tag size={18} />
                   <span>Problem Statements</span>
+                  {!isStaff && isReleased && !hasSelectedTitle && (
+                    <span className="ml-auto w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                  )}
                 </NavLink>
-                <NavLink to="/announcements" className={navLinkClass}>
-                  <Megaphone size={18} />
-                  <span>Announcements</span>
-                </NavLink>
-                <NavLink to="/food-passes" className={navLinkClass}>
-                  <Utensils size={18} />
-                  <span>My Food Passes</span>
-                </NavLink>
-                <NavLink to="/submissions" className={navLinkClass}>
-                  <FolderLock size={18} />
-                  <span>Submissions</span>
-                </NavLink>
+
+                {(isStaff || !isReleased || hasSelectedTitle) && (
+                  <>
+                    <NavLink to="/announcements" className={navLinkClass}>
+                      <Megaphone size={18} />
+                      <span>Announcements</span>
+                    </NavLink>
+                    <NavLink to="/food-passes" className={navLinkClass}>
+                      <Utensils size={18} />
+                      <span>My Food Passes</span>
+                    </NavLink>
+                    <NavLink to="/submissions" className={navLinkClass}>
+                      <FolderLock size={18} />
+                      <span>Submissions</span>
+                    </NavLink>
+                  </>
+                )}
               </>
             )}
 

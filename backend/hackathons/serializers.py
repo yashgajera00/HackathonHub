@@ -12,6 +12,7 @@ class HackathonSerializer(serializers.ModelSerializer):
     created_by_username = serializers.ReadOnlyField(source='created_by.username')
     role = serializers.SerializerMethodField(read_only=True) # User's role in this hackathon
     active_team_status = serializers.SerializerMethodField(read_only=True)
+    active_team_has_selected_title = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Hackathon
@@ -20,9 +21,9 @@ class HackathonSerializer(serializers.ModelSerializer):
             'start_date', 'end_date', 'registration_start', 'registration_end',
             'venue', 'city', 'state', 'country', 'max_team_size', 'min_team_size',
             'status', 'is_problem_statements_released', 'created_by', 'created_by_username', 'created_at', 'updated_at', 'role',
-            'active_team_status'
+            'active_team_status', 'active_team_has_selected_title'
         )
-        read_only_fields = ('id', 'slug', 'created_by', 'created_at', 'updated_at', 'role', 'active_team_status')
+        read_only_fields = ('id', 'slug', 'created_by', 'created_at', 'updated_at', 'role', 'active_team_status', 'active_team_has_selected_title')
 
     def get_role(self, obj):
         request = self.context.get('request')
@@ -42,6 +43,15 @@ class HackathonSerializer(serializers.ModelSerializer):
             if team_member:
                 return team_member.team.status
         return None
+
+    def get_active_team_has_selected_title(self, obj):
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            from teams.models import TeamMember
+            team_member = TeamMember.objects.filter(hackathon=obj, user=request.user).first()
+            if team_member and team_member.team:
+                return bool(team_member.team.selected_title or team_member.team.project_title)
+        return False
 
     def validate(self, data):
         start_date = data.get('start_date') or (self.instance.start_date if self.instance else None)
