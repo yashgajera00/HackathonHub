@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.conf import settings
 from users.models import CustomUser
-from hackathons.models import Hackathon
+from hackathons.models import Hackathon, HackathonTitle
+from hackathons.serializers import HackathonTitleSerializer
 from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamChatMessage
 from memberships.serializers import UserMinSerializer
 
@@ -22,6 +23,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     members = TeamMemberSerializer(many=True, read_only=True)
     created_by_username = serializers.ReadOnlyField(source='created_by.username')
+    selected_title_details = HackathonTitleSerializer(source='selected_title', read_only=True)
     is_leader = serializers.SerializerMethodField()
     all_members_checked_in = serializers.SerializerMethodField()
     checked_in_count = serializers.SerializerMethodField()
@@ -29,7 +31,8 @@ class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = (
-            'id', 'hackathon', 'name', 'project_title', 'project_description', 
+            'id', 'hackathon', 'name', 'selected_title', 'selected_title_details',
+            'project_title', 'project_description', 
             'project_submission_link', 'created_by', 'created_by_username', 
             'created_at', 'updated_at', 'members', 'is_leader', 'status', 'invite_code',
             'all_members_checked_in', 'checked_in_count'

@@ -3,7 +3,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
-import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle, XCircle } from 'lucide-react';
+import { Users, Plus, ShieldCheck, Mail, LogOut, Check, X, RefreshCw, Trash, CheckCircle2, Clock, AlertCircle, XCircle, Lock, Tag, Sparkles, FileText } from 'lucide-react';
 
 export default function MyTeam() {
   const { activeHackathon } = useHackathon();
@@ -13,6 +13,12 @@ export default function MyTeam() {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingInvites, setPendingInvites] = useState([]);
+
+  // Title Selection state
+  const [availableTitles, setAvailableTitles] = useState([]);
+  const [selectedTitleId, setSelectedTitleId] = useState('');
+  const [selectingTitle, setSelectingTitle] = useState(false);
+  const [showChangeTitle, setShowChangeTitle] = useState(false);
 
   // Create Team Form
   const [newTeamName, setNewTeamName] = useState('');
@@ -38,14 +44,47 @@ export default function MyTeam() {
   useEffect(() => {
     if (activeHackathon) {
       fetchMyTeamState(false);
+      fetchAvailableTitles();
       
       const interval = setInterval(() => {
         fetchMyTeamState(true);
+        fetchAvailableTitles();
       }, 5000);
       
       return () => clearInterval(interval);
     }
   }, [activeHackathon?.id]);
+
+  const fetchAvailableTitles = async () => {
+    try {
+      const response = await api.get('/hackathon-titles/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      setAvailableTitles(response.data.results || response.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSelectTitle = async (e) => {
+    e.preventDefault();
+    if (!selectedTitleId) {
+      showToast('Please select a title from the list.', 'error');
+      return;
+    }
+    setSelectingTitle(true);
+    try {
+      const response = await api.post(`/teams/${team.id}/select_title/`, { title_id: selectedTitleId });
+      setTeam(response.data);
+      showToast('Project title selected! Task marked as done.', 'success');
+      setShowChangeTitle(false);
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to select title.', 'error');
+    } finally {
+      setSelectingTitle(false);
+    }
+  };
 
   const fetchMyTeamState = async (silent = false) => {
     try {
@@ -610,6 +649,132 @@ export default function MyTeam() {
           </div>
         </div>
       </div>
+
+      {/* Problem Title Selection Section */}
+      {team.status === 'Approved' ? (
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Tag size={18} className="text-blue-600" />
+              <h3 className="text-base font-bold text-gray-900">Project Title / Problem Statement</h3>
+            </div>
+            {(team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
+              <span className="px-3 py-1 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
+                <CheckCircle2 size={12} className="text-emerald-600" />
+                <span>TASK DONE</span>
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-blue-50 text-blue-800 border border-blue-200">
+                Action Required
+              </span>
+            )}
+          </div>
+
+          {(team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
+            <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider block">Assigned Problem Title</span>
+                  <h4 className="text-base font-bold text-gray-900 mt-1">
+                    {team.selected_title_details?.title || team.project_title}
+                  </h4>
+                  {team.selected_title_details?.description && (
+                    <p className="text-xs text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
+                      {team.selected_title_details.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => setShowChangeTitle(true)}
+                  className="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-bold rounded-xl text-xs transition"
+                >
+                  Change Selected Title
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSelectTitle} className="space-y-4">
+              <p className="text-xs text-gray-500">
+                Choose one of the problem titles provided by the hackathon owner for your team:
+              </p>
+
+              {availableTitles.length > 0 ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {availableTitles.map((t) => (
+                    <label
+                      key={t.id}
+                      onClick={() => setSelectedTitleId(t.id)}
+                      className={`block p-3.5 border rounded-xl cursor-pointer transition ${
+                        String(selectedTitleId) === String(t.id)
+                          ? 'border-blue-500 bg-blue-50/50 shadow-2xs'
+                          : 'border-gray-200 hover:border-gray-300 bg-gray-50/30'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="radio"
+                          name="title_selection"
+                          value={t.id}
+                          checked={String(selectedTitleId) === String(t.id)}
+                          onChange={() => setSelectedTitleId(t.id)}
+                          className="mt-1 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div>
+                          <div className="font-bold text-xs text-gray-900">{t.title}</div>
+                          {t.description && (
+                            <p className="text-[11px] text-gray-500 mt-1 leading-normal">{t.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-500 text-center">
+                  No problem titles have been created by the hackathon owner yet.
+                </div>
+              )}
+
+              <div className="flex items-center space-x-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={selectingTitle || !selectedTitleId || availableTitles.length === 0}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center space-x-1.5"
+                >
+                  {selectingTitle && <RefreshCw size={12} className="animate-spin" />}
+                  <span>Save Title & Mark Task Done</span>
+                </button>
+                {showChangeTitle && (
+                  <button
+                    type="button"
+                    onClick={() => setShowChangeTitle(false)}
+                    className="px-3 py-2 border border-gray-200 text-gray-600 font-bold rounded-xl text-xs hover:bg-gray-50 transition"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Lock size={16} className="text-gray-400" />
+              <h3 className="text-sm font-bold text-gray-800">Problem Title Selection</h3>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full font-bold text-[9px] bg-amber-50 text-amber-800 border border-amber-200">
+              Awaiting Team Approval
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed font-medium">
+            Title selection will become available here once your team submission has been <strong className="text-gray-700">Approved</strong> by the hackathon organizers.
+          </p>
+        </div>
+      )}
 
       {/* Incoming Join Requests (Leader only) */}
       {isLeader && (team.status === 'Pending' || team.status === 'Rejected') && joinRequests.length > 0 && (

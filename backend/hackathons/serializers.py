@@ -1,6 +1,12 @@
 from rest_framework import serializers
 from django.utils.text import slugify
-from hackathons.models import Hackathon
+from hackathons.models import Hackathon, HackathonTitle
+
+class HackathonTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HackathonTitle
+        fields = ('id', 'hackathon', 'title', 'description', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 class HackathonSerializer(serializers.ModelSerializer):
     created_by_username = serializers.ReadOnlyField(source='created_by.username')

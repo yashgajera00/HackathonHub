@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Count
-from hackathons.models import Hackathon
+from hackathons.models import Hackathon, HackathonTitle
 from teams.models import Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamChatMessage
 from teams.serializers import TeamSerializer, TeamInvitationSerializer, TeamJoinRequestSerializer, TeamChatMessageSerializer
 from memberships.models import HackathonMember
@@ -517,6 +517,54 @@ class TeamViewSet(viewsets.ModelViewSet):
                 title="Team Submission Rejected",
                 message=f"Your team submission for '{team.name}' in {team.hackathon.title} was rejected by organizers."
             )
+
+        return Response(self.get_serializer(team).data)
+
+    @action(detail=True, methods=['post'])
+    def select_title(self, request, pk=None):
+        """
+        Members of an Approved team can select a problem statement/title for their team.
+        """
+        team = self.get_object()
+        
+        # Check team approval status
+        if team.status != 'Approved':
+            return Response(
+                {"detail": "Title selection is only available once your team has been approved by organizers."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check membership
+        is_member = team.members.filter(user=request.user).exists()
+        if not is_member and not request.user.is_superuser:
+            return Response({"detail": "Only team members can select a title for the team."}, status=status.HTTP_403_FORBIDDEN)
+
+        title_id = request.data.get('title_id')
+        if not title_id:
+            return Response({"detail": "title_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        title_obj = HackathonTitle.objects.filter(id=title_id, hackathon=team.hackathon).first()
+        if not title_obj:
+            return Response({"detail": "Selected problem title was not found for this hackathon."}, status=status.HTTP_404_NOT_FOUND)
+
+        team.selected_title = title_obj
+        team.project_title = title_obj.title
+        team.save()
+
+        log_activity(
+            request.user,
+            "Selected project title",
+            hackathon=team.hackathon,
+            details=f"Team '{team.name}' selected title: {title_obj.title}"
+        )
+
+        for member in team.members.all():
+            if member.user != request.user:
+                Notification.objects.create(
+                    user=member.user,
+                    title="Team Title Selected",
+                    message=f"Your team project title has been set to '{title_obj.title}'."
+                )
 
         return Response(self.get_serializer(team).data)
 

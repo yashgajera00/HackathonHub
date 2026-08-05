@@ -23,7 +23,7 @@ from rest_framework.routers import DefaultRouter
 
 # Import ViewSets
 from users.views import CustomUserViewSet
-from hackathons.views import HackathonViewSet
+from hackathons.views import HackathonViewSet, HackathonTitleViewSet
 from memberships.views import HackathonMemberViewSet
 from registrations.views import RegistrationViewSet, FoodCouponViewSet, UserFoodTokenViewSet
 from teams.views import TeamViewSet, TeamInvitationViewSet, TeamJoinRequestViewSet
@@ -35,6 +35,7 @@ from dashboard.views import ActivityLogViewSet, DashboardAnalyticsViewSet
 router = DefaultRouter()
 router.register(r'users', CustomUserViewSet, basename='user')
 router.register(r'hackathons', HackathonViewSet, basename='hackathon')
+router.register(r'hackathon-titles', HackathonTitleViewSet, basename='hackathontitle')
 router.register(r'memberships', HackathonMemberViewSet, basename='membership')
 router.register(r'registrations', RegistrationViewSet, basename='registration')
 router.register(r'food-coupons', FoodCouponViewSet, basename='foodcoupon')

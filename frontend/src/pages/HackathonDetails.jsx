@@ -5,7 +5,7 @@ import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
 import { 
   Calendar, MapPin, Users, BookOpen, Clock, Plus, Trash2, 
-  Sparkles, CheckCircle, ShieldCheck, Trophy, RefreshCw, AlertTriangle
+  Sparkles, CheckCircle, ShieldCheck, Trophy, RefreshCw, AlertTriangle, Tag, CheckCircle2
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -17,16 +17,19 @@ export default function HackathonDetails() {
   const [activeTab, setActiveTab] = useState('schedule');
   const [schedule, setSchedule] = useState([]);
   const [rules, setRules] = useState([]);
+  const [titles, setTitles] = useState([]);
   const [userRegistration, setUserRegistration] = useState(null);
   
   // Loading flags
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [loadingRules, setLoadingRules] = useState(false);
+  const [loadingTitles, setLoadingTitles] = useState(false);
   const [loadingRegistration, setLoadingRegistration] = useState(false);
 
   // Forms
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [showRuleForm, setShowRuleForm] = useState(false);
+  const [showTitleForm, setShowTitleForm] = useState(false);
   
   const [scheduleData, setScheduleData] = useState({
     title: '',
@@ -41,16 +44,23 @@ export default function HackathonDetails() {
     content: '',
   });
 
+  const [titleData, setTitleData] = useState({
+    title: '',
+    description: '',
+  });
+
   useEffect(() => {
     if (activeHackathon) {
       fetchSchedule(false);
       fetchRules(false);
+      fetchTitles(false);
       fetchUserRegistration(false);
 
       const interval = setInterval(() => {
         refreshHackathonDetails(true);
         fetchSchedule(true);
         fetchRules(true);
+        fetchTitles(true);
         fetchUserRegistration(true);
       }, 5000);
 
@@ -106,6 +116,20 @@ export default function HackathonDetails() {
     }
   };
 
+  const fetchTitles = async (silent = false) => {
+    try {
+      if (!silent) setLoadingTitles(true);
+      const response = await api.get('/hackathon-titles/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      setTitles(response.data.results || response.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      if (!silent) setLoadingTitles(false);
+    }
+  };
+
   const handleAddSchedule = async (e) => {
     e.preventDefault();
     try {
@@ -140,6 +164,23 @@ export default function HackathonDetails() {
     }
   };
 
+  const handleAddTitle = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/hackathon-titles/', {
+        ...titleData,
+        hackathon: activeHackathon.id
+      });
+      showToast('Problem title added!', 'success');
+      setShowTitleForm(false);
+      setTitleData({ title: '', description: '' });
+      fetchTitles();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to add problem title.', 'error');
+    }
+  };
+
   const handleDeleteSchedule = async (id) => {
     if (!(await confirm('Delete this schedule item?', 'Delete Schedule Item'))) return;
     try {
@@ -157,6 +198,17 @@ export default function HackathonDetails() {
       await api.delete(`/rules/${id}/`);
       showToast('Rule deleted.', 'success');
       fetchRules();
+    } catch (e) {
+      showToast('Failed to delete.', 'error');
+    }
+  };
+
+  const handleDeleteTitle = async (id) => {
+    if (!(await confirm('Delete this problem title?', 'Delete Title'))) return;
+    try {
+      await api.delete(`/hackathon-titles/${id}/`);
+      showToast('Problem title deleted.', 'success');
+      fetchTitles();
     } catch (e) {
       showToast('Failed to delete.', 'error');
     }
@@ -244,6 +296,13 @@ export default function HackathonDetails() {
         >
           <span>Rules</span>
           {activeTab === 'rules' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
+        </button>
+        <button
+          onClick={() => setActiveTab('titles')}
+          className={`pb-3 relative transition whitespace-nowrap ${activeTab === 'titles' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+        >
+          <span>Problem Titles</span>
+          {activeTab === 'titles' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-blue-600 rounded-full"></span>}
         </button>
         {userRegistration && activeHackathonRole !== 'Organizer' && activeHackathonRole !== 'Volunteer' && activeHackathonRole !== 'Judge' && activeHackathonRole !== 'Mentor' && (
           <button
@@ -481,6 +540,114 @@ export default function HackathonDetails() {
             ) : (
               <div className="text-center text-gray-400 py-12 text-xs">
                 No rules have been uploaded yet.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Problem Titles Tab */}
+        {activeTab === 'titles' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold font-display text-gray-900">Problem Statements & Titles</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Organizers add titles here. Approved teams can select one for their project.</p>
+              </div>
+              {isOrganizer && (
+                <button
+                  onClick={() => setShowTitleForm(!showTitleForm)}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition"
+                >
+                  <Plus size={14} />
+                  <span>Add Problem Title</span>
+                </button>
+              )}
+            </div>
+
+            {/* Title Form */}
+            {showTitleForm && (
+              <form onSubmit={handleAddTitle} className="bg-gray-50 border border-gray-150 p-4 rounded-2xl space-y-4 text-xs font-medium">
+                <div>
+                  <label className="block text-gray-500 mb-1">Title Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={titleData.title}
+                    onChange={(e) => setTitleData({ ...titleData, title: e.target.value })}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none bg-white text-sm"
+                    placeholder="AI Powered Smart Healthcare System"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-500 mb-1">Description / Problem Statement (Optional)</label>
+                  <textarea
+                    rows={3}
+                    value={titleData.description}
+                    onChange={(e) => setTitleData({ ...titleData, description: e.target.value })}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none bg-white text-sm"
+                    placeholder="Build a system that leverages machine learning models to assist doctors..."
+                  />
+                </div>
+                <div className="flex justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowTitleForm(false)}
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg"
+                  >
+                    Save Title
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Problem Titles List */}
+            {loadingTitles ? (
+              <div className="space-y-4">
+                <div className="h-16 bg-gray-50 animate-pulse rounded-xl"></div>
+              </div>
+            ) : titles.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {titles.map((t, idx) => (
+                  <div key={t.id} className="border border-gray-100 rounded-2xl p-5 hover:border-gray-200 transition shadow-2xs bg-white">
+                    <div className="flex items-start justify-between">
+                      <div className="flex space-x-3">
+                        <span className="h-7 w-7 bg-blue-50 text-blue-600 font-bold text-xs rounded-xl flex items-center justify-center shrink-0">
+                          <Tag size={14} />
+                        </span>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-sm font-bold text-gray-900">{t.title}</h4>
+                            <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-100">
+                              Title #{idx + 1}
+                            </span>
+                          </div>
+                          {t.description && (
+                            <p className="text-xs text-gray-500 mt-2 leading-relaxed whitespace-pre-line">{t.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      {isOrganizer && (
+                        <button
+                          onClick={() => handleDeleteTitle(t.id)}
+                          className="text-gray-400 hover:text-red-600 p-1 rounded transition shrink-0"
+                          title="Delete Title"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-400 py-12 text-xs">
+                No problem titles have been added for this hackathon yet.
               </div>
             )}
           </div>

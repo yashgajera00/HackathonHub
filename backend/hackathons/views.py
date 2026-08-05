@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from django.db.models import Q
-from hackathons.models import Hackathon
-from hackathons.serializers import HackathonSerializer
+from hackathons.models import Hackathon, HackathonTitle
+from hackathons.serializers import HackathonSerializer, HackathonTitleSerializer
 from memberships.models import HackathonMember
 from common.permissions import IsPlatformOwner, IsHackathonOrganizer
 from dashboard.models import log_activity
@@ -82,4 +82,47 @@ class HackathonViewSet(viewsets.ModelViewSet):
             hackathon=hackathon, 
             details=f"Created hackathon: {hackathon.title}"
         )
+
+
+class HackathonTitleViewSet(viewsets.ModelViewSet):
+    queryset = HackathonTitle.objects.all().order_by('-created_at')
+    serializer_class = HackathonTitleSerializer
+
+    def get_permissions(self):
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return HackathonTitle.objects.none()
+
+        hackathon_id = self.request.query_params.get('hackathon_id') or self.request.headers.get('X-Hackathon-Id')
+        if hackathon_id:
+            return HackathonTitle.objects.filter(hackathon_id=hackathon_id).order_by('created_at')
+        return HackathonTitle.objects.all().order_by('created_at')
+
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            hackathon_id = request.data.get('hackathon') or request.query_params.get('hackathon_id') or request.headers.get('X-Hackathon-Id')
+            if self.action in ['update', 'partial_update', 'destroy'] and not hackathon_id and hasattr(self, 'get_object'):
+                try:
+                    obj = self.get_object()
+                    hackathon_id = obj.hackathon.id
+                except Exception:
+                    pass
+
+            if hackathon_id:
+                is_organizer = request.user.is_superuser or HackathonMember.objects.filter(
+                    hackathon_id=hackathon_id,
+                    user=request.user,
+                    role='Organizer',
+                    invitation_status='Accepted'
+                ).exists()
+                if not is_organizer:
+                    self.permission_denied(
+                        request,
+                        message="Only Hackathon Organizers can manage problem titles."
+                    )
+
 

@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from hackathons.models import Hackathon
+from hackathons.models import Hackathon, HackathonTitle
 
 class Team(models.Model):
     STATUS_CHOICES = [
@@ -12,6 +12,7 @@ class Team(models.Model):
 
     hackathon = models.ForeignKey(Hackathon, on_delete=models.CASCADE, related_name='teams')
     name = models.CharField(max_length=100)
+    selected_title = models.ForeignKey(HackathonTitle, on_delete=models.SET_NULL, null=True, blank=True, related_name='selected_by_teams')
     project_title = models.CharField(max_length=255, blank=True, null=True)
     project_description = models.TextField(blank=True, null=True)
     project_submission_link = models.URLField(blank=True, null=True)
