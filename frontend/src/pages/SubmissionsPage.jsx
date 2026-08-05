@@ -76,7 +76,12 @@ export default function SubmissionsPage() {
     if (!selectedTeam) return;
     setSubmittingProject(true);
     try {
-      const response = await api.post(`/teams/${selectedTeam.id}/submit_project/`, submitForm);
+      const lockedTitle = selectedTeam.selected_title_details?.title || selectedTeam.project_title || submitForm.project_title;
+      const payload = {
+        ...submitForm,
+        project_title: lockedTitle
+      };
+      const response = await api.post(`/teams/${selectedTeam.id}/submit_project/`, payload);
       showToast('Project submission saved successfully!', 'success');
       setTeams(prev => prev.map(t => t.id === selectedTeam.id ? response.data : t));
       setSelectedTeam(response.data);
@@ -452,7 +457,7 @@ export default function SubmissionsPage() {
                       required
                       readOnly
                       disabled
-                      value={submitForm.project_title}
+                      value={selectedTeam?.selected_title_details?.title || selectedTeam?.project_title || submitForm.project_title || ''}
                       className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-100/90 text-gray-800 text-xs font-bold cursor-not-allowed select-none pr-8"
                       placeholder="Selected problem statement title"
                     />

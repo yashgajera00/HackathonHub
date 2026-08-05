@@ -381,7 +381,11 @@ class TeamViewSet(viewsets.ModelViewSet):
         if team.created_by != request.user and not request.user.is_superuser and not is_organizer:
             return Response({"detail": "Only the Team Leader or Organizers can edit project details."}, status=status.HTTP_403_FORBIDDEN)
 
-        team.project_title = request.data.get('project_title', team.project_title)
+        if team.selected_title:
+            team.project_title = team.selected_title.title
+        else:
+            team.project_title = request.data.get('project_title', team.project_title)
+
         team.project_description = request.data.get('project_description', team.project_description)
         team.project_submission_link = request.data.get('project_submission_link', team.project_submission_link)
         team.save()
