@@ -5,6 +5,8 @@ import api from '../services/api';
 import { Bell, LogOut, User, ChevronDown, Check, LayoutGrid, Menu } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
+import logoImg from '../assets/logo.png';
+
 export default function Navbar({ onToggleSidebar }) {
   const { user, logout } = useAuth();
   const { activeHackathonId, activeHackathon, selectHackathon, activeHackathonRole } = useHackathon();
@@ -105,7 +107,7 @@ export default function Navbar({ onToggleSidebar }) {
           </button>
         )}
         <Link to="/dashboard" className="flex items-center space-x-2">
-          <span className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold font-display">H</span>
+          <img src={logoImg} alt="HackathonHub Logo" className="h-8 w-8 object-contain rounded-lg shrink-0" />
           <span className="hidden sm:inline text-xl font-bold font-display tracking-tight text-gray-900">Hackathon<span className="text-blue-600">Hub</span></span>
         </Link>
 

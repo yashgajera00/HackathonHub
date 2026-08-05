@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import logoImg from '../assets/logo.png';
 import {
   Rocket, Users, Trophy, Shield, Zap, Globe, ArrowRight,
   Code2, Calendar, Star, ChevronRight, Monitor, Award,
@@ -150,9 +151,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Brand Logo */}
             <Link to="/" className="flex items-center space-x-2.5 group">
-              <span className="h-9 w-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold font-display text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-all">
-                H
-              </span>
+              <img src={logoImg} alt="HackathonHub Logo" className="h-9 w-9 object-contain rounded-xl shadow-sm group-hover:scale-105 transition-all" />
               <span className="text-xl sm:text-2xl font-bold font-display tracking-tight text-slate-900">
                 Hackathon<span className="text-blue-600">Hub</span>
               </span>
@@ -213,9 +212,7 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center justify-between pb-6 border-b border-slate-100">
                 <Link to="/" onClick={() => closeMobileMenu()} className="flex items-center space-x-2">
-                  <span className="h-8 w-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold font-display text-sm shadow-sm shadow-blue-600/30">
-                    H
-                  </span>
+                  <img src={logoImg} alt="HackathonHub Logo" className="h-8 w-8 object-contain rounded-lg shrink-0" />
                   <span className="text-lg font-bold font-display text-slate-900">
                     Hackathon<span className="text-blue-600">Hub</span>
                   </span>
