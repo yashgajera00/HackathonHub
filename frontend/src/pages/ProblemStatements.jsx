@@ -18,6 +18,7 @@ export default function ProblemStatements() {
 
   // Team & Selection State
   const [myTeam, setMyTeam] = useState(null);
+  const [loadingTeam, setLoadingTeam] = useState(true);
   const [selectingTitle, setSelectingTitle] = useState(false);
   const [confirmModalTitle, setConfirmModalTitle] = useState(null);
 
@@ -40,12 +41,15 @@ export default function ProblemStatements() {
 
   const fetchMyTeam = async (silent = false) => {
     try {
+      if (!silent) setLoadingTeam(true);
       const response = await api.get('/teams/my_team/', {
         params: { hackathon_id: activeHackathon.id }
       });
       setMyTeam(response.data);
     } catch (e) {
       setMyTeam(null);
+    } finally {
+      if (!silent) setLoadingTeam(false);
     }
   };
 
