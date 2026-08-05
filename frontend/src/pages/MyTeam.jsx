@@ -662,7 +662,7 @@ export default function MyTeam() {
               <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-amber-50 text-amber-800 border border-amber-200">
                 Unreleased by Organizers
               </span>
-            ) : (team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
+            ) : (team.selected_title || team.selected_title_details || team.project_title) ? (
               <span className="px-3 py-1 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
                 <CheckCircle2 size={12} className="text-emerald-600" />
                 <span>TASK DONE</span>
@@ -681,14 +681,14 @@ export default function MyTeam() {
                 <span>Problem Statements Not Released Yet</span>
               </div>
               <p className="text-[11px] text-amber-700 leading-relaxed">
-                The hackathon organizers have not released problem statements yet. Once released by organizers, your Team Leader can select a problem statement here.
+                The hackathon organizers have not released problem statements yet. Once released by organizers, your Team Leader can select a problem statement from the Problem Statements page.
               </p>
             </div>
-          ) : (team.selected_title || team.selected_title_details || team.project_title) && !showChangeTitle ? (
-            <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+          ) : (team.selected_title || team.selected_title_details || team.project_title) ? (
+            <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-2">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider block">Assigned Problem Title</span>
+                  <span className="text-[10px] font-extrabold text-emerald-700 uppercase tracking-wider block">Assigned Problem Statement (Locked)</span>
                   <h4 className="text-base font-bold text-gray-900 mt-1">
                     {team.selected_title_details?.title || team.project_title}
                   </h4>
@@ -699,86 +699,27 @@ export default function MyTeam() {
                   )}
                 </div>
               </div>
-              {team.is_leader && (
-                <div className="pt-2 flex justify-end">
-                  <button
-                    onClick={() => setShowChangeTitle(true)}
-                    className="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-bold rounded-xl text-xs transition"
-                  >
-                    Change Selected Title
-                  </button>
-                </div>
-              )}
             </div>
-          ) : team.is_leader ? (
-            <form onSubmit={handleSelectTitle} className="space-y-4">
-              <p className="text-xs text-gray-500">
-                As the <strong>Team Leader</strong>, choose one of the problem statements released by the organizers:
-              </p>
-
-              {availableTitles.length > 0 ? (
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {availableTitles.map((t) => (
-                    <label
-                      key={t.id}
-                      onClick={() => setSelectedTitleId(t.id)}
-                      className={`block p-3.5 border rounded-xl cursor-pointer transition ${
-                        String(selectedTitleId) === String(t.id)
-                          ? 'border-blue-500 bg-blue-50/50 shadow-2xs'
-                          : 'border-gray-200 hover:border-gray-300 bg-gray-50/30'
-                      }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <input
-                          type="radio"
-                          name="title_selection"
-                          value={t.id}
-                          checked={String(selectedTitleId) === String(t.id)}
-                          onChange={() => setSelectedTitleId(t.id)}
-                          className="mt-1 text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="font-bold text-xs text-gray-900">{t.title}</div>
-                          {t.description && (
-                            <p className="text-[11px] text-gray-500 mt-1 leading-normal">{t.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-500 text-center">
-                  No problem titles have been created by the hackathon owner yet.
-                </div>
-              )}
-
-              <div className="flex items-center space-x-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={selectingTitle || !selectedTitleId || availableTitles.length === 0}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition disabled:opacity-50 flex items-center space-x-1.5"
-                >
-                  {selectingTitle && <RefreshCw size={12} className="animate-spin" />}
-                  <span>Save Title & Mark Task Done</span>
-                </button>
-                {showChangeTitle && (
-                  <button
-                    type="button"
-                    onClick={() => setShowChangeTitle(false)}
-                    className="px-3 py-2 border border-gray-200 text-gray-600 font-bold rounded-xl text-xs hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </form>
           ) : (
-            <div className="p-4 bg-blue-50/50 border border-blue-200/80 rounded-2xl text-xs text-blue-800 space-y-1">
-              <div className="font-bold">Waiting for Team Leader</div>
-              <p className="text-[11px] text-blue-700 leading-relaxed">
-                Only your Team Leader can choose the problem statement for your team. Once selected, your assigned title will appear here with the Task Done status!
+            <div className="p-5 bg-blue-50/50 border border-blue-200/80 rounded-2xl text-xs text-blue-900 space-y-3">
+              <div className="font-bold flex items-center space-x-2 text-sm text-blue-950">
+                <Tag size={16} className="text-blue-600" />
+                <span>{team.is_leader ? 'Select Problem Statement on Problem Statements Page' : 'Waiting for Team Leader to Select Statement'}</span>
+              </div>
+              <p className="text-xs text-blue-800 leading-relaxed">
+                {team.is_leader 
+                  ? 'Problem statements have been released by organizers! Go to the Problem Statements page to pick and permanently lock a problem statement for your team.' 
+                  : 'Problem statements have been released by organizers. Only your Team Leader can select a problem statement for your team.'}
               </p>
+              <div className="pt-1">
+                <Link
+                  to="/problem-statements"
+                  className="inline-flex items-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm"
+                >
+                  <span>Go to Problem Statements</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
             </div>
           )}
         </div>

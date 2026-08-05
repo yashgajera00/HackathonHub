@@ -3,7 +3,7 @@ import { useHackathon } from '../context/HackathonContext';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
 import api from '../services/api';
-import { Tag, Plus, Trash2, Sparkles, RefreshCw, FileText, CheckCircle2, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
+import { Tag, Plus, Trash2, Sparkles, RefreshCw, FileText, CheckCircle2, Lock, Unlock, Eye, EyeOff, AlertTriangle, Check } from 'lucide-react';
 
 export default function ProblemStatements() {
   const { activeHackathon, activeHackathonRole, refreshHackathonDetails } = useHackathon();
@@ -16,6 +16,11 @@ export default function ProblemStatements() {
   const [submitting, setSubmitting] = useState(false);
   const [togglingRelease, setTogglingRelease] = useState(false);
 
+  // Team & Selection State
+  const [myTeam, setMyTeam] = useState(null);
+  const [selectingTitle, setSelectingTitle] = useState(false);
+  const [confirmModalTitle, setConfirmModalTitle] = useState(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,12 +29,25 @@ export default function ProblemStatements() {
   useEffect(() => {
     if (activeHackathon) {
       fetchTitles(false);
+      fetchMyTeam(false);
       const interval = setInterval(() => {
         fetchTitles(true);
+        fetchMyTeam(true);
       }, 5000);
       return () => clearInterval(interval);
     }
   }, [activeHackathon?.id]);
+
+  const fetchMyTeam = async (silent = false) => {
+    try {
+      const response = await api.get('/teams/my_team/', {
+        params: { hackathon_id: activeHackathon.id }
+      });
+      setMyTeam(response.data);
+    } catch (e) {
+      setMyTeam(null);
+    }
+  };
 
   const fetchTitles = async (silent = false) => {
     try {
@@ -43,6 +61,25 @@ export default function ProblemStatements() {
       if (!silent) showToast('Failed to load problem statements.', 'error');
     } finally {
       if (!silent) setLoading(false);
+    }
+  };
+
+  const handleConfirmSelectTitle = async () => {
+    if (!confirmModalTitle || !myTeam) return;
+    setSelectingTitle(true);
+    try {
+      const response = await api.post(`/teams/${myTeam.id}/select_title/`, {
+        title_id: confirmModalTitle.id
+      });
+      showToast(`Successfully selected "${confirmModalTitle.title}" for your team!`, 'success');
+      setConfirmModalTitle(null);
+      await fetchMyTeam();
+      if (refreshHackathonDetails) await refreshHackathonDetails();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to select problem statement.', 'error');
+    } finally {
+      setSelectingTitle(false);
     }
   };
 
@@ -234,40 +271,84 @@ export default function ProblemStatements() {
         </div>
       ) : titles.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
-          {titles.map((t, idx) => (
-            <div key={t.id} className="bg-white border border-gray-100 hover:border-blue-200 rounded-3xl p-6 shadow-xs hover:shadow-md transition space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start space-x-3.5">
-                  <span className="h-9 w-9 bg-blue-50 text-blue-600 font-bold text-xs rounded-2xl flex items-center justify-center shrink-0 border border-blue-100">
-                    <Tag size={16} />
-                  </span>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="text-base font-bold text-gray-900">{t.title}</h3>
-                      <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
-                        Statement #{idx + 1}
-                      </span>
+          {titles.map((t, idx) => {
+            const hasTeamSelectedTitle = Boolean(myTeam?.selected_title || myTeam?.project_title);
+            const isThisTitleSelectedByTeam = String(myTeam?.selected_title) === String(t.id) || 
+                                              String(myTeam?.selected_title_details?.id) === String(t.id) ||
+                                              (myTeam?.project_title && myTeam?.project_title === t.title);
+
+            return (
+              <div key={t.id} className="bg-white border border-gray-100 hover:border-blue-200 rounded-3xl p-6 shadow-xs hover:shadow-md transition space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start space-x-3.5">
+                    <span className="h-9 w-9 bg-blue-50 text-blue-600 font-bold text-xs rounded-2xl flex items-center justify-center shrink-0 border border-blue-100 mt-0.5">
+                      <Tag size={16} />
+                    </span>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-base font-bold text-gray-900">{t.title}</h3>
+                        <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
+                          Statement #{idx + 1}
+                        </span>
+                      </div>
+                      {t.description && (
+                        <p className="text-xs text-gray-600 mt-2.5 leading-relaxed whitespace-pre-line">
+                          {t.description}
+                        </p>
+                      )}
                     </div>
-                    {t.description && (
-                      <p className="text-xs text-gray-600 mt-2.5 leading-relaxed whitespace-pre-line">
-                        {t.description}
-                      </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2 shrink-0 self-end sm:self-start">
+                    {/* Organizer Delete Action */}
+                    {isOrganizer && (
+                      <button
+                        onClick={() => handleDeleteTitle(t.id, t.title)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition shrink-0"
+                        title="Delete Problem Statement"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+
+                    {/* Participant Selection / Selected Badge */}
+                    {!isOrganizer && myTeam && (
+                      myTeam.status === 'Approved' ? (
+                        hasTeamSelectedTitle ? (
+                          isThisTitleSelectedByTeam ? (
+                            <span className="px-3.5 py-1.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-300 flex items-center space-x-1.5 shadow-2xs">
+                              <CheckCircle2 size={14} className="text-emerald-600" />
+                              <span>SELECTED BY YOUR TEAM (TASK DONE)</span>
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1.5 bg-gray-100 text-gray-400 font-semibold text-xs rounded-xl border border-gray-200">
+                              Locked
+                            </span>
+                          )
+                        ) : myTeam.is_leader ? (
+                          <button
+                            onClick={() => setConfirmModalTitle(t)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex items-center space-x-1.5 cursor-pointer"
+                          >
+                            <Check size={14} />
+                            <span>Select Problem Statement</span>
+                          </button>
+                        ) : (
+                          <span className="px-3 py-1.5 bg-amber-50 text-amber-800 font-semibold text-xs rounded-xl border border-amber-200">
+                            Team Leader Action Required
+                          </span>
+                        )
+                      ) : (
+                        <span className="px-3 py-1.5 bg-gray-50 text-gray-400 font-semibold text-xs rounded-xl border border-gray-200">
+                          Awaiting Team Approval
+                        </span>
+                      )
                     )}
                   </div>
                 </div>
-
-                {isOrganizer && (
-                  <button
-                    onClick={() => handleDeleteTitle(t.id, t.title)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition shrink-0"
-                    title="Delete Problem Statement"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="bg-white border border-gray-100 rounded-3xl p-12 text-center text-gray-400 shadow-xs space-y-2">
@@ -276,6 +357,62 @@ export default function ProblemStatements() {
           <p className="text-xs text-gray-400">
             {isOrganizer ? 'Click "Add Statement" above to create topics for participants.' : 'Organizers have not posted problem statements for this hackathon yet.'}
           </p>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModalTitle && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl border border-gray-100 relative">
+            <div className="flex items-center space-x-3 text-blue-600">
+              <div className="h-10 w-10 bg-blue-50 rounded-2xl flex items-center justify-center font-bold">
+                <Tag size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold font-display text-gray-900">Confirm Problem Statement</h3>
+                <span className="text-xs text-gray-500 font-semibold">Team: {myTeam?.name}</span>
+              </div>
+            </div>
+
+            <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-4 space-y-2">
+              <h4 className="text-sm font-bold text-gray-900">{confirmModalTitle.title}</h4>
+              {confirmModalTitle.description && (
+                <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">
+                  {confirmModalTitle.description}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 flex items-start space-x-3 text-amber-900 text-xs">
+              <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <span className="font-bold block">One-Time Lock Warning</span>
+                <p className="text-amber-800 leading-relaxed">
+                  Once confirmed, this problem statement will be <strong>permanently locked</strong> for your team. You will not be able to change or re-select your statement later.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmModalTitle(null)}
+                disabled={selectingTitle}
+                className="px-5 py-2.5 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSelectTitle}
+                disabled={selectingTitle}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center space-x-2 disabled:opacity-50"
+              >
+                {selectingTitle ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                <span>Confirm & Lock Statement</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

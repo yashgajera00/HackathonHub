@@ -534,6 +534,13 @@ class TeamViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Check if team has already selected a problem statement
+        if team.selected_title is not None and not request.user.is_superuser:
+            return Response(
+                {"detail": "Your team has already selected a problem statement and cannot change it."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Check if problem statements are released by organizers
         if not team.hackathon.is_problem_statements_released and not request.user.is_superuser:
             return Response(
