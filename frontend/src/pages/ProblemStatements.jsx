@@ -332,7 +332,7 @@ export default function ProblemStatements() {
                                 Locked
                               </span>
                             )
-                          ) : (
+                          ) : myTeam.is_leader ? (
                             <button
                               onClick={() => setConfirmModalTitle(t)}
                               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex items-center space-x-1.5 cursor-pointer shrink-0"
@@ -340,6 +340,10 @@ export default function ProblemStatements() {
                               <Check size={14} />
                               <span>Select Problem Statement</span>
                             </button>
+                          ) : (
+                            <span className="px-3.5 py-2 bg-amber-50 text-amber-800 font-semibold text-xs rounded-xl border border-amber-200 shrink-0">
+                              Team Leader Action Required
+                            </span>
                           )
                         ) : (
                           <span className="px-3 py-2 bg-gray-50 text-gray-400 font-semibold text-xs rounded-xl border border-gray-200">

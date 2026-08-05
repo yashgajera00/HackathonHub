@@ -45,7 +45,7 @@ class TeamSerializer(serializers.ModelSerializer):
     def get_is_leader(self, obj):
         request = self.context.get('request')
         if request and request.user and request.user.is_authenticated:
-            return obj.created_by == request.user
+            return obj.created_by == request.user or obj.members.filter(user=request.user, role='Leader').exists()
         return False
 
     def get_all_members_checked_in(self, obj):
